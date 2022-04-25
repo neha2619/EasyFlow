@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EasyFlow.Migrations
 {
     [DbContext(typeof(RepositoryContext))]
-    [Migration("20220425093957_DBCreation")]
+    [Migration("20220425111147_DBCreation")]
     partial class DBCreation
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
