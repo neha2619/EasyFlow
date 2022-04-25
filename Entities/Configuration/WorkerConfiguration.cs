@@ -17,7 +17,7 @@ namespace Entities.Configuration
             (
                 new Worker
                 {
-                    Id = new Guid("80abbca8-664d-4b20-b5de-024705497d4a"),
+                    Id = new Guid("46A32C93-1663-447F-8801-DB7DB9C42719"),
                     WorkerName = "Sam Raiden",
                     WorkerMail = "Samraiden@gmail.com",
                     WorkerMobile = "8976543209",
@@ -35,7 +35,7 @@ namespace Entities.Configuration
                 },
                  new Worker
                  {
-                     Id = new Guid("86dba8c7-d178-41e7-938c-ed49778fb52a"),
+                     Id = new Guid("76ED4298-C549-465B-AF8F-A80ABAE08616") ,
                      WorkerName = "Ron Raiden",
                      WorkerMail = "Ronraiden@gmail.com",
                      WorkerMobile = "8976786209",

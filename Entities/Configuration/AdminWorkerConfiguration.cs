@@ -19,10 +19,10 @@ namespace Entities.Configuration
 
                 new AdminWorker
                 {
-                    Id = new Guid("80abbcz1-664d-4b20-b5de-024705497d4a"),
+                    Id = new Guid("2D1ABE8A-A2DF-4394-A7C2-BE8DAD068519"),
                     WorkerType = "Carpenter",
                     Location = "Hazaratganj",
-                    WorkerId = new Guid("86dba8c7-d178-41e7-938c-ed49778fb52a")
+                    WorkerId = new Guid("76ED4298-C549-465B-AF8F-A80ABAE08616")
                 }
 
 

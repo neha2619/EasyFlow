@@ -104,7 +104,7 @@ namespace EasyFlow.Migrations
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     WorkerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    WorkerTypeId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    WorkerType = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Location = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
@@ -116,13 +116,45 @@ namespace EasyFlow.Migrations
                         principalTable: "Workers",
                         principalColumn: "WorkerId",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_AdminWorkers_Workers_WorkerTypeId",
-                        column: x => x.WorkerTypeId,
-                        principalTable: "Workers",
-                        principalColumn: "WorkerId",
-                        onDelete: ReferentialAction.Restrict);
                 });
+
+            migrationBuilder.InsertData(
+                table: "Admins",
+                columns: new[] { "AdminId", "Email", "Mobile", "Name", "Pass" },
+                values: new object[] { new Guid("8a6ea087-cbc8-4699-92ce-13056ae550fe"), "Samraiden@gmail.com", "8976543209", "Sam Raiden", "hshskhsk" });
+
+            migrationBuilder.InsertData(
+                table: "Companies",
+                columns: new[] { "CompanyId", "CompanyArea", "CompanyCin", "CompanyDistrict", "CompanyGstin", "CompanyMail", "CompanyMobile", "CompanyName", "CompanyPass", "CompanyState", "CompanySubArea", "CompanyType", "CreatedOn", "KYCStatus", "SiteLocation", "UpdatedOn", "WorkerNumber" },
+                values: new object[,]
+                {
+                    { new Guid("2a5ddaf5-d15b-4976-93a1-41e8f79aeccc"), "Ashiyana", "123456789012345678901", "Lucknow", "123456789012345", "ITsolution@gmail.com", "8318692776", "IT_Solutions Ltd", "fsdgvdsg", "Uttar Pradesh", "Sector o", "Hotel", "24.04.2022", "Yes", "sector o, sector p, sector d,sector f", "12.05.2022", "90" },
+                    { new Guid("c86111fd-8827-4435-a601-404f9a213c23"), "HHazratganj", "123456789012345672341", "Lucknow", "123456788792345", "Adminsolution@gmail.com", "8318692776", "Admin_Solutions Ltd", "fsdedgvdsg", "Uttar Pradesh", "Rana Pratap Marg", "Construction", "14.04.2022", "No", "Rana Pratap Marg, sector p, sector d,sector f", "2.05.2022", "90" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Workers",
+                columns: new[] { "WorkerId", "CreatedOn", "KYCStatus", "LocationPreference", "UpdatedOn", "WorkerAadhar", "WorkerMail", "WorkerMobile", "WorkerName", "WorkerPass", "WorkerType", "companyId" },
+                values: new object[,]
+                {
+                    { new Guid("46a32c93-1663-447f-8801-db7db9c42719"), "24.04.2022", "Yes", "Alambag,charbag", "12.05.2022", "123456789012", "Samraiden@gmail.com", "8976543209", "Sam Raiden", "hjhfdjgjgg", "Plumber", null },
+                    { new Guid("76ed4298-c549-465b-af8f-a80abae08616"), "21.04.2022", "No", "Hazaratganj,Aashiyana", "11.05.2022", "120000789012", "Ronraiden@gmail.com", "8976786209", "Ron Raiden", "hjhfdjsdsdgjgg", "Carpenter", null }
+                });
+
+            migrationBuilder.InsertData(
+                table: "AdminCompanyies",
+                columns: new[] { "Id", "CompanyId", "Location", "Vacancy", "WorkerType" },
+                values: new object[] { new Guid("a3347540-c60d-45f4-8ade-af0a189397a3"), new Guid("2a5ddaf5-d15b-4976-93a1-41e8f79aeccc"), "sector o", "5", "Plumber" });
+
+            migrationBuilder.InsertData(
+                table: "AdminCompanyies",
+                columns: new[] { "Id", "CompanyId", "Location", "Vacancy", "WorkerType" },
+                values: new object[] { new Guid("76c00047-4526-48a9-9947-ea2be4133e64"), new Guid("c86111fd-8827-4435-a601-404f9a213c23"), "sector p", "7", "Carpenter" });
+
+            migrationBuilder.InsertData(
+                table: "AdminWorkers",
+                columns: new[] { "Id", "Location", "WorkerId", "WorkerType" },
+                values: new object[] { new Guid("2d1abe8a-a2df-4394-a7c2-be8dad068519"), "Hazaratganj", new Guid("76ed4298-c549-465b-af8f-a80abae08616"), "Carpenter" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AdminCompanyies_CompanyId",
@@ -133,11 +165,6 @@ namespace EasyFlow.Migrations
                 name: "IX_AdminWorkers_WorkerId",
                 table: "AdminWorkers",
                 column: "WorkerId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_AdminWorkers_WorkerTypeId",
-                table: "AdminWorkers",
-                column: "WorkerTypeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Workers_companyId",

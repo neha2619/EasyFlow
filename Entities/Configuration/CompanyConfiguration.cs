@@ -39,7 +39,7 @@ namespace Entities.Configuration
  },
  new company
  {
-     Id = new Guid("3d490n70-94ce-4d15-9494-5248280c2ce3"),
+     Id = new Guid("C86111FD-8827-4435-A601-404F9A213C23"),
      CompanyName = "Admin_Solutions Ltd",
      CompanyMail = "Adminsolution@gmail.com",
      CompanyMobile = "8318692776",

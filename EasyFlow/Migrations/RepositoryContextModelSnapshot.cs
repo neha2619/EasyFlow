@@ -41,6 +41,16 @@ namespace EasyFlow.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Admins");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("8a6ea087-cbc8-4699-92ce-13056ae550fe"),
+                            Email = "Samraiden@gmail.com",
+                            Mobile = "8976543209",
+                            Name = "Sam Raiden",
+                            Pass = "hshskhsk"
+                        });
                 });
 
             modelBuilder.Entity("Entities.Models.AdminCompany", b =>
@@ -67,6 +77,24 @@ namespace EasyFlow.Migrations
                     b.HasIndex("CompanyId");
 
                     b.ToTable("AdminCompanyies");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("a3347540-c60d-45f4-8ade-af0a189397a3"),
+                            CompanyId = new Guid("2a5ddaf5-d15b-4976-93a1-41e8f79aeccc"),
+                            Location = "sector o",
+                            Vacancy = "5",
+                            WorkerType = "Plumber"
+                        },
+                        new
+                        {
+                            Id = new Guid("76c00047-4526-48a9-9947-ea2be4133e64"),
+                            CompanyId = new Guid("c86111fd-8827-4435-a601-404f9a213c23"),
+                            Location = "sector p",
+                            Vacancy = "7",
+                            WorkerType = "Carpenter"
+                        });
                 });
 
             modelBuilder.Entity("Entities.Models.AdminWorker", b =>
@@ -82,16 +110,23 @@ namespace EasyFlow.Migrations
                     b.Property<Guid>("WorkerId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("WorkerTypeId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("WorkerType")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("WorkerId");
 
-                    b.HasIndex("WorkerTypeId");
-
                     b.ToTable("AdminWorkers");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("2d1abe8a-a2df-4394-a7c2-be8dad068519"),
+                            Location = "Hazaratganj",
+                            WorkerId = new Guid("76ed4298-c549-465b-af8f-a80abae08616"),
+                            WorkerType = "Carpenter"
+                        });
                 });
 
             modelBuilder.Entity("Entities.Models.Worker", b =>
@@ -146,6 +181,36 @@ namespace EasyFlow.Migrations
                     b.HasIndex("companyId");
 
                     b.ToTable("Workers");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("46a32c93-1663-447f-8801-db7db9c42719"),
+                            CreatedOn = "24.04.2022",
+                            KYCStatus = "Yes",
+                            LocationPreference = "Alambag,charbag",
+                            UpdatedOn = "12.05.2022",
+                            WorkerAadhar = "123456789012",
+                            WorkerMail = "Samraiden@gmail.com",
+                            WorkerMobile = "8976543209",
+                            WorkerName = "Sam Raiden",
+                            WorkerPass = "hjhfdjgjgg",
+                            WorkerType = "Plumber"
+                        },
+                        new
+                        {
+                            Id = new Guid("76ed4298-c549-465b-af8f-a80abae08616"),
+                            CreatedOn = "21.04.2022",
+                            KYCStatus = "No",
+                            LocationPreference = "Hazaratganj,Aashiyana",
+                            UpdatedOn = "11.05.2022",
+                            WorkerAadhar = "120000789012",
+                            WorkerMail = "Ronraiden@gmail.com",
+                            WorkerMobile = "8976786209",
+                            WorkerName = "Ron Raiden",
+                            WorkerPass = "hjhfdjsdsdgjgg",
+                            WorkerType = "Carpenter"
+                        });
                 });
 
             modelBuilder.Entity("Entities.Models.company", b =>
@@ -219,6 +284,48 @@ namespace EasyFlow.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Companies");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("2a5ddaf5-d15b-4976-93a1-41e8f79aeccc"),
+                            CompanyArea = "Ashiyana",
+                            CompanyCin = "123456789012345678901",
+                            CompanyDistrict = "Lucknow",
+                            CompanyGstin = "123456789012345",
+                            CompanyMail = "ITsolution@gmail.com",
+                            CompanyMobile = "8318692776",
+                            CompanyName = "IT_Solutions Ltd",
+                            CompanyPass = "fsdgvdsg",
+                            CompanyState = "Uttar Pradesh",
+                            CompanySubArea = "Sector o",
+                            CompanyType = "Hotel",
+                            CreatedOn = "24.04.2022",
+                            KYCStatus = "Yes",
+                            SiteLocation = "sector o, sector p, sector d,sector f",
+                            UpdatedOn = "12.05.2022",
+                            WorkerNumber = "90"
+                        },
+                        new
+                        {
+                            Id = new Guid("c86111fd-8827-4435-a601-404f9a213c23"),
+                            CompanyArea = "HHazratganj",
+                            CompanyCin = "123456789012345672341",
+                            CompanyDistrict = "Lucknow",
+                            CompanyGstin = "123456788792345",
+                            CompanyMail = "Adminsolution@gmail.com",
+                            CompanyMobile = "8318692776",
+                            CompanyName = "Admin_Solutions Ltd",
+                            CompanyPass = "fsdedgvdsg",
+                            CompanyState = "Uttar Pradesh",
+                            CompanySubArea = "Rana Pratap Marg",
+                            CompanyType = "Construction",
+                            CreatedOn = "14.04.2022",
+                            KYCStatus = "No",
+                            SiteLocation = "Rana Pratap Marg, sector p, sector d,sector f",
+                            UpdatedOn = "2.05.2022",
+                            WorkerNumber = "90"
+                        });
                 });
 
             modelBuilder.Entity("Entities.Models.AdminCompany", b =>
@@ -240,13 +347,7 @@ namespace EasyFlow.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Entities.Models.Worker", "WorkerType")
-                        .WithMany()
-                        .HasForeignKey("WorkerTypeId");
-
                     b.Navigation("Worker");
-
-                    b.Navigation("WorkerType");
                 });
 
             modelBuilder.Entity("Entities.Models.Worker", b =>

@@ -17,7 +17,7 @@ namespace Entities.Configuration
             (
                 new Admin
                 {
-                    Id = new Guid("80abbca8-664d-4b20-b5de-024705497d4a"),
+                    Id = new Guid("8A6EA087-CBC8-4699-92CE-13056AE550FE"),
                     Name = "Sam Raiden",
                     Email = "Samraiden@gmail.com",
                     Mobile = "8976543209",
