@@ -13,18 +13,13 @@ namespace EasyFlow.Controllers
     public class WeatherForecastController : ControllerBase
     {
         private readonly IRepositoryManager _repository;
-        public WeatherForecastController(IRepositoryManager repository)
-        {
-            _repository = repository;
-        }
         private ILoggerManager _logger;
-        public WeatherForecastController(ILoggerManager logger)
+        public WeatherForecastController(IRepositoryManager repository, ILoggerManager logger)
         {
             _logger = logger;
+            _repository = repository;
         }
- 
-
- 
+      
  [HttpGet]
         public ActionResult<IEnumerable<string>> Get()
         {

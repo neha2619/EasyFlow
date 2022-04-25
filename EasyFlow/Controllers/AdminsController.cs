@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EasyFlow.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/admins")]
     [ApiController]
     public class AdminsController : ControllerBase
     {

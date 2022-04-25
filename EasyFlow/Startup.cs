@@ -1,3 +1,4 @@
+using Contracts;
 using EasyFlow.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -38,11 +39,13 @@ namespace EasyFlow
             services.ConfigureLoggerService();
             services.ConfigureSqlContext(Configuration);
             services.ConfigureRepositoryManager();
+            services.AddAutoMapper(typeof(Startup));
             services.AddControllers();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env,
+ILoggerManager logger)
         {
             if (env.IsDevelopment())
             {
@@ -53,6 +56,7 @@ namespace EasyFlow
                 app.UseHsts();
             }
 
+            app.ConfigureExceptionHandler(logger);
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseCors("CorsPolicy");
