@@ -18,7 +18,7 @@ namespace Entities.Configuration
  (
  new company
  {
-     Id = new Guid("c9d4c053-49b6-410c-bc78-2d54a9991870"),
+     Id = new Guid("2A5DDAF5-D15B-4976-93A1-41E8F79AECCC"),
      CompanyName = "IT_Solutions Ltd",
      CompanyMail = "ITsolution@gmail.com",
      CompanyMobile = "8318692776",
