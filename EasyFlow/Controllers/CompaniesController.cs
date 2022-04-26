@@ -26,10 +26,9 @@ namespace EasyFlow.Controllers
         [HttpGet]
         public IActionResult GetCompanies()
         {
-
             var companies = _repository.company.GetAllCompanies(trackChanges: false);
             var companiesDto = _mapper.Map<IEnumerable<CompanyDto>>(companies);
-
+            
             return Ok(companiesDto);
 
         }
