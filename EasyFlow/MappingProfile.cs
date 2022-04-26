@@ -13,6 +13,8 @@ namespace EasyFlow
    .ForMember(c => c.CompanyFullAddress,
    opt => opt.MapFrom(x => string.Join(' ', x.CompanyDistrict, x.CompanyState,  " India")));
 
+            CreateMap<Worker, WorkerDto>();
+
         }
     }
 }
