@@ -14,6 +14,7 @@ namespace EasyFlow
    opt => opt.MapFrom(x => string.Join(' ', x.CompanyDistrict, x.CompanyState,  " India")));
 
             CreateMap<Worker, WorkerDto>();
+            CreateMap<Admin, AdminDto>();
 
         }
     }

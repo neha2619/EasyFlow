@@ -16,6 +16,10 @@ namespace Repository
  : base(repositoryContext)
         {
         }
-
+        //Ignore this message ..
+        public IEnumerable<Admin> GetAllAdmin(bool trackChanges) =>
+ FindAll(trackChanges)
+ .OrderBy(c => c.Name)
+ .ToList();
     }
 }
