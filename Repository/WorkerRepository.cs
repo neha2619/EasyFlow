@@ -20,5 +20,7 @@ namespace Repository
  FindAll(trackChanges)
  .OrderBy(c => c.WorkerName)
  .ToList();
+
+        public void AddWorker(Worker  worker) => Create(worker);
     }
 }

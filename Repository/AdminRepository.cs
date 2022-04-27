@@ -17,6 +17,7 @@ namespace Repository
         {
         }
         //Ignore this message ..
+        public void CreateAdmin(Admin admin)=> Create(admin);
         public IEnumerable<Admin> GetAllAdmin(bool trackChanges) =>
  FindAll(trackChanges)
  .OrderBy(c => c.Name)

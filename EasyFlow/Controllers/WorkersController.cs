@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Contracts;
 using Entities.DataTransferObjects;
+using Entities.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
@@ -20,7 +21,7 @@ namespace EasyFlow.Controllers
             _logger = logger;
             _mapper = mapper;
         }
-        [HttpGet]
+        [HttpGet(Name = "WorkerById")]
         public IActionResult GetWorkers()
         {
 
@@ -30,6 +31,22 @@ namespace EasyFlow.Controllers
             return Ok(workersDto);
 
         }
+
+        [HttpPost]
+        public IActionResult RegisterWorker(WorkerForRegistrationDto worker)
+        {
+           if (worker == null)
+            {
+                _logger.LogInfo("Worker Registration Object is Null");
+                return BadRequest("The Sent Worker Registration Object is Null");
+            }
+           var workerEntity = _mapper.Map<Worker>(worker);
+            _repository.Worker.Create(workerEntity);
+            _repository.Save();
+            var workerToReturn = _mapper.Map<WorkerDto>(workerEntity);
+            return CreatedAtRoute("workerById", new { id = workerToReturn.Id },workerToReturn);
+
+    }
     }
   
    

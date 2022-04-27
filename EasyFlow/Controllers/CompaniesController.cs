@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Contracts;
 using Entities.DataTransferObjects;
+using Entities.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -23,7 +24,7 @@ namespace EasyFlow.Controllers
             _logger = logger;
             _mapper = mapper;
         }
-        [HttpGet]
+        [HttpGet( Name = "CompanyById")]
         public IActionResult GetCompanies()
         {
             var companies = _repository.company.GetAllCompanies(trackChanges: false);
@@ -43,6 +44,22 @@ namespace EasyFlow.Controllers
             }
             var companyDto = _mapper.Map<CompanyDto>(company);
             return Ok(companyDto);
+        }
+        [HttpPost]
+        public IActionResult RegisterCompany([FromBody] CompanyForCreationDto companyCreation)
+        {
+            if (companyCreation == null)
+            {
+                _logger.LogError("CompanyForCreation object sent from the client is null");
+                return BadRequest("CompanyForCreation Object is Null");
+            }
+
+            var companyEntity = _mapper.Map<company>(companyCreation);
+            _repository.company.CreateCompany(companyEntity);
+            _repository.Save();
+            var companyToReturn = _mapper.Map<CompanyRegistrationDto>(companyEntity);
+            return CreatedAtRoute("CompanyById", new { id = companyToReturn.Id },
+           companyToReturn);
         }
 
 

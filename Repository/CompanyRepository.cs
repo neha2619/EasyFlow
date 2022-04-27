@@ -15,11 +15,13 @@ namespace Repository
         : base(repositoryContext)
         {
         }
-
         public IEnumerable<company> GetAllCompanies(bool trackChanges) =>
  FindAll(trackChanges)
  .OrderBy(c => c.CompanyName)
  .ToList();
+
+        public void CreateCompany(company company) => Create(company);
+
 
         public company GetCompany(Guid companyId, bool trackChanges) =>
  FindByCondition(c => c.Id.Equals(companyId), trackChanges)

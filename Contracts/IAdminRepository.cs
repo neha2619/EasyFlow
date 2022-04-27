@@ -10,5 +10,6 @@ namespace Contracts
     public interface IAdminRepository : IRepositoryBase<Admin>
     {
         IEnumerable<Admin> GetAllAdmin(bool trackChanges);
+         void CreateAdmin(Admin admin);
     }
 }

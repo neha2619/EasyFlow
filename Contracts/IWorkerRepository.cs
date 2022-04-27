@@ -10,5 +10,6 @@ namespace Contracts
     public interface IWorkerRepository :IRepositoryBase<Worker> 
     {
         IEnumerable<Worker> GetAllWorkers(bool trackChanges);
+        void AddWorker(Worker worker);
     }
 }

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Contracts;
 using Entities.DataTransferObjects;
+using Entities.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
@@ -20,7 +21,7 @@ namespace EasyFlow.Controllers
             _logger = logger;
             _mapper = mapper;
         }
-        [HttpGet]
+        [HttpGet( Name = "AdminById")]
         public IActionResult GetAdmin()
         {
 
@@ -29,6 +30,22 @@ namespace EasyFlow.Controllers
 
             return Ok(adminDto);
 
+        }
+        [HttpPost]
+         public IActionResult RegisterAdmin([FromBody] AdminForRegistrationDto admin)
+        {
+            if (admin == null)
+            {
+                _logger.LogError("AdminForRegistration object sent from the client is null");
+                return BadRequest("AdminForRegistration Object is Null");
+            }
+
+            var adminEntity = _mapper.Map<Admin>(admin);
+            _repository.Admin.CreateAdmin(adminEntity);
+            _repository.Save();
+            var adminToReturn = _mapper.Map<AdminDto>(adminEntity);
+            return  CreatedAtRoute("AdminById", new { id = adminToReturn.Id },
+           adminToReturn);
         }
     }
 }
