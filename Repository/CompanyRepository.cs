@@ -23,8 +23,17 @@ namespace Repository
         public void CreateCompany(company company) => Create(company);
 
 
-        public company GetCompany(Guid companyId, bool trackChanges) =>
- FindByCondition(c => c.Id.Equals(companyId), trackChanges)
+        public company GetCompanyFromName(string CompanyName, bool trackChanges) =>
+ FindByCondition(c => c.CompanyName.Equals(CompanyName), trackChanges)
+ .SingleOrDefault();
+        public company GetCompanyFromEmail(string CompanyEmail, bool trackChanges) =>
+ FindByCondition(c => c.CompanyMail.Equals(CompanyEmail), trackChanges)
+ .SingleOrDefault();
+        public company GetCompanyPasswordFromEmail(string CompanyEmail, bool trackChanges) =>
+ FindByCondition(c => c.CompanyMail.Equals(CompanyEmail), trackChanges)
+ .SingleOrDefault();  
+        public company GetCompanyPasswordFromMobile(string CompanyMobile, bool trackChanges) =>
+ FindByCondition(c => c.CompanyMobile.Equals(CompanyMobile), trackChanges)
  .SingleOrDefault();
     }
 

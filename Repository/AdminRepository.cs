@@ -22,5 +22,12 @@ namespace Repository
  FindAll(trackChanges)
  .OrderBy(c => c.Name)
  .ToList();
+
+        public Admin GetAdminPasswordFromEmail(string AdminEmail, bool trackChanges) =>
+FindByCondition(c => c.Email.Equals(AdminEmail), trackChanges)
+.SingleOrDefault();
+        public Admin GetAdminPasswordFromMobile(string AdminMobile, bool trackChanges) =>
+FindByCondition(c => c.Mobile.Equals(AdminMobile), trackChanges)
+.SingleOrDefault();
     }
 }

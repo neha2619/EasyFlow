@@ -31,7 +31,7 @@ namespace EasyFlow.Controllers
             return Ok(adminDto);
 
         }
-        [HttpPost]
+        [HttpPost("register")]
          public IActionResult RegisterAdmin([FromBody] AdminForRegistrationDto admin)
         {
             if (admin == null)
@@ -46,6 +46,59 @@ namespace EasyFlow.Controllers
             var adminToReturn = _mapper.Map<AdminDto>(adminEntity);
             return  CreatedAtRoute("AdminById", new { id = adminToReturn.Id },
            adminToReturn);
+        }
+       [HttpGet("login")]
+        public IActionResult LoginAdmin([FromBody] LoginDto adminLogin)
+        {
+            if (adminLogin.Email != null && adminLogin.Mobile != null && adminLogin.Pass != null)
+            {
+                return StatusCode(405, "Now Allowed");
+            }
+            if (adminLogin.Mobile != null)
+            {
+                if (adminLogin.Pass != null)
+                {
+                    var Admin = _repository.Admin.GetAdminPasswordFromMobile(adminLogin.Mobile, trackChanges: false);
+
+                    if (Admin != null)
+                    {
+                        if (adminLogin.Pass.Equals(Admin.Pass))
+                        {
+                            return Ok($"Login Successful");
+                        }
+                        return BadRequest("Password Incorrect");
+
+                    }
+                    _logger.LogInfo($"Admin with Mobile {adminLogin.Mobile} not found");
+                    return BadRequest($"Admin with Mobile {adminLogin.Mobile} not found");
+                }
+                _logger.LogError("Fields can not be null");
+                return BadRequest("Fields can not be null");
+
+            }
+            else
+            {
+
+                if (adminLogin.Email != null && adminLogin.Pass != null)
+                {
+                    var Admin = _repository.Admin.GetAdminPasswordFromEmail(adminLogin.Email, trackChanges: false);
+
+                    if (Admin != null)
+                    {
+                        if (adminLogin.Pass.Equals(Admin.Pass))
+                        {
+                            return Ok($"Login Successful");
+                        }
+                        return BadRequest("Password Incorrect");
+
+                    }
+                    _logger.LogInfo($"Admin with email {adminLogin.Email} not found");
+                    return BadRequest($"Admin with email {adminLogin.Email} not found");
+                }
+            }
+            _logger.LogError("Fields can not be null");
+            return BadRequest("Fields can not be null");
+
         }
     }
 }

@@ -11,5 +11,8 @@ namespace Contracts
     {
         IEnumerable<Worker> GetAllWorkers(bool trackChanges);
         void AddWorker(Worker worker);
+        Worker GetWorkerPasswordFromMobile(string WorkerMobile, bool trackChanges);
+        Worker GetWorkerPasswordFromEmail(string WorkerEmail, bool trackChanges);
+
     }
 }

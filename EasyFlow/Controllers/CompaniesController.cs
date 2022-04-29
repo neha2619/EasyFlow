@@ -33,35 +33,97 @@ namespace EasyFlow.Controllers
             return Ok(companiesDto);
 
         }
-        [HttpGet("{Id}")]
-        public IActionResult GetCompany(Guid id)
+        [HttpGet("{CompanyName}")]
+        public IActionResult GetCompany(string CompanyName)
         {
-            var company = _repository.company.GetCompany(id,trackChanges:false);
+            var company = _repository.company.GetCompanyFromName(CompanyName,trackChanges:false);
             if (company == null)
             {
-                _logger.LogInfo($" Company with id {id} doesn't exist in the Database");
+                _logger.LogInfo($" Company with id {CompanyName} doesn't exist in the Database");
                 return NotFound();
             }
             var companyDto = _mapper.Map<CompanyDto>(company);
             return Ok(companyDto);
         }
-        [HttpPost]
+        [HttpPost("register")]
         public IActionResult RegisterCompany([FromBody] CompanyForCreationDto companyCreation)
         {
-            if (companyCreation == null)
+            if (companyCreation.CompanyName != null && companyCreation.CompanyName != null && companyCreation.CompanyCin != null && companyCreation.CompanyGstin != null && companyCreation.CompanyMail != null && companyCreation.CompanyPass != null && companyCreation.CompanyMobile != null)
             {
-                _logger.LogError("CompanyForCreation object sent from the client is null");
-                return BadRequest("CompanyForCreation Object is Null");
-            }
 
-            var companyEntity = _mapper.Map<company>(companyCreation);
-            _repository.company.CreateCompany(companyEntity);
-            _repository.Save();
-            var companyToReturn = _mapper.Map<CompanyRegistrationDto>(companyEntity);
-            return CreatedAtRoute("CompanyById", new { id = companyToReturn.Id },
-           companyToReturn);
+                var company = _repository.company.GetCompanyFromName(companyCreation.CompanyName, trackChanges: false);
+                if (company == null)
+                {
+                    var companyEntity = _mapper.Map<company>(companyCreation);
+                    _repository.company.CreateCompany(companyEntity);
+                    _repository.Save();
+                    var companyToReturn = _mapper.Map<CompanyRegistrationDto>(companyEntity);
+                    return CreatedAtRoute("CompanyById", new { id = companyToReturn.Id },
+                   companyToReturn);
+                }
+                _logger.LogError("Commpany Name Already Registered");
+                return BadRequest("Company Alreay Registered");
+               
+            }
+            _logger.LogError("Fields can not be null in Company Registeration");
+            return BadRequest("Fields can not be null in Company Registeration");
+            
         }
 
+        [HttpGet("login")]
+        public IActionResult LoginCompanyByEmail([FromBody] LoginDto companyLogin)
+        {
+            if (companyLogin.Email != null && companyLogin.Mobile!=null && companyLogin.Pass !=null)
+            {
+                return StatusCode(405, "Now Allowed");
+            }
+            if (companyLogin.Mobile != null)
+            {
+                if (companyLogin.Pass != null)
+                {
+                    var company = _repository.company.GetCompanyPasswordFromMobile(companyLogin.Mobile, trackChanges: false);
 
+                    if (company != null)
+                    {
+                        if (companyLogin.Pass.Equals(company.CompanyPass))
+                        {
+                            return Ok($"Login Successful");
+                        }
+                        return BadRequest("Password Incorrect");
+
+                    }
+                    _logger.LogInfo($"Company with Mobile {companyLogin.Mobile} not found");
+                    return BadRequest($"Company with Mobile {companyLogin.Mobile} not found");
+                }
+                _logger.LogError("Fields can not be null");
+                return BadRequest("Fields can not be null");
+
+            }
+            else
+            {
+               
+                if (companyLogin.Email != null && companyLogin.Pass != null)
+                {
+                    var company = _repository.company.GetCompanyPasswordFromEmail(companyLogin.Email, trackChanges: false);
+
+                    if (company != null)
+                    {
+                        if (companyLogin.Pass.Equals(company.CompanyPass))
+                        {
+                            return Ok($"Login Successful");
+                        }
+                        return BadRequest("Password Incorrect");
+
+                    }
+                    _logger.LogInfo($"Company with email {companyLogin.Email} not found");
+                    return BadRequest($"Company with email {companyLogin.Email} not found");
+                }
+            }
+            _logger.LogError("Fields can not be null");
+            return BadRequest("Fields can not be null");
+           
+
+        }
+      
     }
 }

@@ -21,6 +21,14 @@ namespace Repository
  .OrderBy(c => c.WorkerName)
  .ToList();
 
+        public Worker GetWorkerPasswordFromMobile(string WorkerMobile, bool trackChanges) =>
+ FindByCondition(c => c.WorkerMobile.Equals(WorkerMobile), trackChanges)
+ .SingleOrDefault();
+
+        public Worker GetWorkerPasswordFromEmail(string WorkerEmail, bool trackChanges) =>
+ FindByCondition(c => c.WorkerMail.Equals(WorkerEmail), trackChanges)
+ .SingleOrDefault();
+
         public void AddWorker(Worker  worker) => Create(worker);
     }
 }
