@@ -31,6 +31,7 @@ namespace Entities.Models
         public string WorkerType { get; set; }
         [MaxLength(180, ErrorMessage = "Maximum length for the Location Preference is 180 characters")]
         public string LocationPreference { get; set; }
+        public int Ratings { get; set; }
 
     }
 }
