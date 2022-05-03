@@ -38,6 +38,9 @@ namespace Repository
         public company GetCompanyPasswordFromMobile(string CompanyMobile, bool trackChanges) =>
  FindByCondition(c => c.CompanyMobile.Equals(CompanyMobile), trackChanges)
  .SingleOrDefault();
+        public company GetCompanyFromMobile(string CompanyMobile, bool trackChanges) =>
+ FindByCondition(c => c.CompanyMobile.Equals(CompanyMobile), trackChanges)
+ .SingleOrDefault();
     }
 
 

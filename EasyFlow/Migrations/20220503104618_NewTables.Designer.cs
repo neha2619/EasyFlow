@@ -4,14 +4,16 @@ using Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace EasyFlow.Migrations
 {
     [DbContext(typeof(RepositoryContext))]
-    partial class RepositoryContextModelSnapshot : ModelSnapshot
+    [Migration("20220503104618_NewTables")]
+    partial class NewTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -97,27 +99,6 @@ namespace EasyFlow.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Entities.Models.AdminReq", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("Id");
-
-                    b.Property<Guid>("CompanyId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("RequestState")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("WorkerId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("AdminReq");
-                });
-
             modelBuilder.Entity("Entities.Models.AdminWorker", b =>
                 {
                     b.Property<Guid>("Id")
@@ -148,27 +129,6 @@ namespace EasyFlow.Migrations
                             WorkerId = new Guid("76ed4298-c549-465b-af8f-a80abae08616"),
                             WorkerType = "Carpenter"
                         });
-                });
-
-            modelBuilder.Entity("Entities.Models.PreviousWorker", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("Id");
-
-                    b.Property<Guid>("CompanyId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("WorkerId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("WorkerState")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("PreviousWorker");
                 });
 
             modelBuilder.Entity("Entities.Models.Worker", b =>
@@ -258,30 +218,6 @@ namespace EasyFlow.Migrations
                             WorkerPass = "hjhfdjsdsdgjgg",
                             WorkerType = "Carpenter"
                         });
-                });
-
-            modelBuilder.Entity("Entities.Models.WorkerReq", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("Id");
-
-                    b.Property<string>("Location")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RequestState")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("WorkerId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("WorkerType")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("WorkerReq");
                 });
 
             modelBuilder.Entity("Entities.Models.company", b =>
