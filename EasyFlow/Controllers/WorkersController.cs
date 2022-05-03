@@ -3,7 +3,9 @@ using Contracts;
 using Entities.DataTransferObjects;
 using Entities.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
 
 namespace EasyFlow.Controllers
@@ -102,5 +104,29 @@ namespace EasyFlow.Controllers
             return BadRequest("Fields can not be null");
 
         }
+        [HttpPatch("{mobile}")]
+        public IActionResult PartiallyUpdateWorker( string mobile,
+[FromBody] JsonPatchDocument<WorkerUpdateDto> patchDoc)
+        {
+            if (patchDoc == null)
+            {
+                _logger.LogError("patchDoc object sent from client is null.");
+                return BadRequest("patchDoc object is null");
+            }
+            
+            var workerEntity = _repository.Worker.GetWorkerFromMobile( mobile, trackChanges:
+           true);
+            if (workerEntity == null)
+            {
+                _logger.LogInfo($"Worker with mobile: {mobile} doesn't exist in the database.");
+                return NotFound();
+            }
+            var workerToPatch = _mapper.Map<WorkerUpdateDto>(workerEntity);
+            patchDoc.ApplyTo(workerToPatch);
+            _mapper.Map(workerToPatch, workerEntity);
+            _repository.Save();
+            return NoContent();
+        }
+
     }
 }

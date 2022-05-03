@@ -3,6 +3,7 @@ using Contracts;
 using Entities.DataTransferObjects;
 using Entities.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 
@@ -101,6 +102,29 @@ namespace EasyFlow.Controllers
             _logger.LogError("Fields can not be null");
             return BadRequest("Fields can not be null");
 
+        }
+        [HttpPatch("{mobile}")]
+        public IActionResult PartiallyUpdateAdmin(string mobile,
+[FromBody] JsonPatchDocument<AdminUpdateDto> patchDoc)
+        {
+            if (patchDoc == null)
+            {
+                _logger.LogError("patchDoc object sent from client is null.");
+                return BadRequest("patchDoc object is null");
+            }
+
+            var adminEntity = _repository.Admin.GetAdminFromMobile(mobile, trackChanges:
+           true);
+            if (adminEntity == null)
+            {
+                _logger.LogInfo($"Admin with mobile: {mobile} doesn't exist in the database.");
+                return NotFound();
+            }
+            var adminToPatch = _mapper.Map<AdminUpdateDto>(adminEntity);
+            patchDoc.ApplyTo(adminToPatch);
+            _mapper.Map(adminToPatch, adminEntity);
+            _repository.Save();
+            return NoContent();
         }
     }
 }

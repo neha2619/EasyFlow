@@ -9,10 +9,10 @@ namespace Contracts
     public interface IGlobalValidationUtil
     {
         bool IsEmailValid(string email);
-        bool IsMobilelValid(string mob);
-        bool IsGstinlValid(string gstin);
-        bool IsCinlValid(string cin);
-        bool IsAadhaarlValid(string aadhaar);
+        bool IsMobileValid(string mob);
+        bool IsGstinValid(string gstin);
+        bool IsCinValid(string cin);
+        bool IsAadhaarValid(string aadhaar);
 
     }
 }

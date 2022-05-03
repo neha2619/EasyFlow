@@ -14,5 +14,7 @@ namespace Contracts
         Admin GetAdminPasswordFromMobile(string AdminMobile, bool trackChanges);
 
         void CreateAdmin(Admin admin);
+
+        Admin GetAdminFromMobile(string Mobile, bool trackChanges);
     }
 }
