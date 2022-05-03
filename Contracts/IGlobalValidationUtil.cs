@@ -10,7 +10,7 @@ namespace Contracts
     {
         bool IsEmailValid(string email);
         bool IsMobilelValid(string mob);
-        bool IsGstinValid(string gstin);
+        bool IsGstinlValid(string gstin);
         bool IsCinlValid(string cin);
         bool IsAadhaarlValid(string aadhaar);
 

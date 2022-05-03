@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace Util
 {
-    public class GlobalValidationUtil :  IGlobalValidationUtil
+    public class GlobalValidationUtil :IGlobalValidationUtil
     {
         public static string MOBILE_PATTERN = "^[6-9]{1}[0-9]{9}";
         public static string EMAIL_PATTERN = "^[a-zA-Z0-9]+[.+-_]{0,1}[0-9a-zA-Z]+[@][a-zA-Z]+[.][a-zA-Z]{2,3}([.][a-zA-Z]{2,3}){0,1}";
@@ -29,7 +29,7 @@ namespace Util
             Regex regex = new Regex(MOBILE_PATTERN);
             return regex.IsMatch(mob);
         }
-        public bool IsGstinValid(string gstin)
+        public bool IsGstinlValid(string gstin)
         {
             if (gstin == null)
             {

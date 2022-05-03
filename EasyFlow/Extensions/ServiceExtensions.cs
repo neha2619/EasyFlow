@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Repository;
-using Util;
 
 namespace EasyFlow.Extensions
 {
@@ -28,7 +27,7 @@ namespace EasyFlow.Extensions
         public static void ConfigureLoggerService(this IServiceCollection services) =>
  services.AddScoped<ILoggerManager, LoggerManager>();
 
-        public static void ConfigureUtilServices(this IServiceCollection services) => services.AddScoped<IGlobalValidationUtil, GlobalValidationUtil>();
+        public static void ConfigureUtilServices(this IServiceCollection services) => services.AddScoped<IGlobalValidationUtil, IGlobalValidationUtil>();
         
         public static void ConfigureSqlContext(this IServiceCollection services,
 IConfiguration configuration) =>
