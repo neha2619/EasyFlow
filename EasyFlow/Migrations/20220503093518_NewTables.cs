@@ -2,7 +2,7 @@
 
 namespace EasyFlow.Migrations
 {
-    public partial class RequestTables : Migration
+    public partial class NewTables : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

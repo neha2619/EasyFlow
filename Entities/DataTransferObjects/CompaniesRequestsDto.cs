@@ -7,8 +7,7 @@ using System.Threading.Tasks;
 namespace Entities.DataTransferObjects
 {
     public class CompaniesRequestsDto
-    {
-        
+    { 
         public string WorkerType { get; set; }
         public string Location { get; set; }
         public string Vacancy { get; set; }

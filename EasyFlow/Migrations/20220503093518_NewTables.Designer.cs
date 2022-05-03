@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EasyFlow.Migrations
 {
     [DbContext(typeof(RepositoryContext))]
-    [Migration("20220430144446_RequestTables")]
-    partial class RequestTables
+    [Migration("20220503093518_NewTables")]
+    partial class NewTables
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

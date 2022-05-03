@@ -17,14 +17,16 @@ namespace EasyFlow.Controllers
         private readonly IRepositoryManager _repository;
         private readonly ILoggerManager _logger;
         private readonly IMapper _mapper;
+        private readonly IGlobalValidationUtil _validate;
         public CompaniesController(IRepositoryManager repository, ILoggerManager logger, IMapper
-            mapper)
+            mapper, IGlobalValidationUtil validate)
         {
             _repository = repository;
             _logger = logger;
             _mapper = mapper;
+            _validate = validate;  
         }
-        [HttpGet( Name = "CompanyById")]
+        [HttpGet( )]
         public IActionResult GetCompanies()
         {
             var companies = _repository.company.GetAllCompanies(trackChanges: false);
@@ -33,7 +35,7 @@ namespace EasyFlow.Controllers
             return Ok(companiesDto);
 
         }
-        [HttpGet("{companyName}")]
+        [HttpGet("{companyName}", Name = "CompanyById")]
         public IActionResult GetCompanyById(string companyName)
         {
 
@@ -51,7 +53,10 @@ namespace EasyFlow.Controllers
         {
             if (companyCreation.CompanyName != null && companyCreation.CompanyName != null && companyCreation.CompanyCin != null && companyCreation.CompanyGstin != null && companyCreation.CompanyMail != null && companyCreation.CompanyPass != null && companyCreation.CompanyMobile != null)
             {
-
+                if (!(_validate.IsEmailValid(companyCreation.CompanyMail)))
+                {
+                    _logger.LogError("Email is in valid");
+                }
                 var company = _repository.company.GetCompanyFromName(companyCreation.CompanyName, trackChanges: false);
                 if (company == null)
                 {
@@ -82,6 +87,7 @@ namespace EasyFlow.Controllers
             {
                 if (companyLogin.Pass != null)
                 {
+                   
                     var company = _repository.company.GetCompanyPasswordFromMobile(companyLogin.Mobile, trackChanges: false);
 
                     if (company != null)
@@ -105,6 +111,12 @@ namespace EasyFlow.Controllers
                
                 if (companyLogin.Email != null && companyLogin.Pass != null)
                 {
+                    
+                    if (!(_validate.IsEmailValid(companyLogin.Email)))
+                    {
+                        _logger.LogError("Company email is Invalid");
+                        return BadRequest("Company email is Invalid");
+                    }
                     var company = _repository.company.GetCompanyPasswordFromEmail(companyLogin.Email, trackChanges: false);
 
                     if (company != null)
