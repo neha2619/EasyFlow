@@ -13,6 +13,8 @@ namespace Contracts
         void AddWorker(Worker worker);
         Worker GetWorkerPasswordFromMobile(string WorkerMobile, bool trackChanges);
         Worker GetWorkerPasswordFromEmail(string WorkerEmail, bool trackChanges);
+        Worker GetWorkerFromMobile(string WorkerMobile, bool trackChanges);
+
 
     }
 }

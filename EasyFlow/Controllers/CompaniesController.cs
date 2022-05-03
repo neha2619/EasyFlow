@@ -3,6 +3,7 @@ using Contracts;
 using Entities.DataTransferObjects;
 using Entities.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -137,6 +138,29 @@ namespace EasyFlow.Controllers
             }
             return BadRequest(companiesRequestsDto);
 
+        }
+        [HttpPatch("{mobile}")]
+        public IActionResult PartiallyUpdateCompany(string mobile,
+[FromBody] JsonPatchDocument<CompanyUpdateDto> patchDoc)
+        {
+            if (patchDoc == null)
+            {
+                _logger.LogError("patchDoc object sent from client is null.");
+                return BadRequest("patchDoc object is null");
+            }
+
+            var companyEntity = _repository.company.GetCompanyFromMobile(mobile, trackChanges:
+           true);
+            if (companyEntity == null)
+            {
+                _logger.LogInfo($"Company with mobile: {mobile} doesn't exist in the database.");
+                return NotFound();
+            }
+            var companyToPatch = _mapper.Map<CompanyUpdateDto>(companyEntity);
+            patchDoc.ApplyTo(companyToPatch);
+            _mapper.Map(companyToPatch, companyEntity);
+            _repository.Save();
+            return NoContent();
         }
 
     }

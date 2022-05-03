@@ -30,5 +30,8 @@ FindByCondition(c => c.Email.Equals(AdminEmail), trackChanges)
         public Admin GetAdminPasswordFromMobile(string AdminMobile, bool trackChanges) =>
 FindByCondition(c => c.Mobile.Equals(AdminMobile), trackChanges)
 .SingleOrDefault();
+        public Admin GetAdminFromMobile(string AdminMobile, bool trackChanges) =>
+FindByCondition(c => c.Mobile.Equals(AdminMobile), trackChanges)
+.SingleOrDefault();
     }
 }

@@ -16,6 +16,6 @@ namespace Contracts
         company GetCompanyPasswordFromEmail(string CompanyEmail, bool trackChanges);
         company GetCompanyPasswordFromMobile(string CompanyMobile, bool trackChanges);
         void CreateCompany(company company);
-
+        company GetCompanyFromMobile(string CompanyMobile, bool trackChanges);
     }
 }

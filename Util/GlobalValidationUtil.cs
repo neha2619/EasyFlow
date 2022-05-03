@@ -20,7 +20,7 @@ namespace Util
             Regex regex = new Regex(EMAIL_PATTERN);
             return regex.IsMatch(email);
         }
-        public bool IsMobilelValid(string mob)
+        public bool IsMobileValid(string mob)
         {
             if (mob == null)
             {
@@ -29,7 +29,7 @@ namespace Util
             Regex regex = new Regex(MOBILE_PATTERN);
             return regex.IsMatch(mob);
         }
-        public bool IsGstinlValid(string gstin)
+        public bool IsGstinValid(string gstin)
         {
             if (gstin == null)
             {
@@ -38,7 +38,7 @@ namespace Util
             Regex regex = new Regex(GSTIN_PATTERN);
             return regex.IsMatch(gstin);
         }
-        public bool IsCinlValid(string cin)
+        public bool IsCinValid(string cin)
         {
             if (cin == null)
             {
@@ -47,7 +47,7 @@ namespace Util
             Regex regex = new Regex(CIN_PATTERN);
             return regex.IsMatch(cin);
         }
-        public bool IsAadhaarlValid(string aadhaar)
+        public bool IsAadhaarValid(string aadhaar)
         {
             if (aadhaar == null)
             {
