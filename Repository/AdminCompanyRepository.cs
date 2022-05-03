@@ -16,5 +16,7 @@ namespace Repository
  : base(repositoryContext)
         {
         }
+        public void CreateRequest(AdminCompany adminrequest) => Create(adminrequest);
+
     }
 }

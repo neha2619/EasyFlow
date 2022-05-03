@@ -19,6 +19,5 @@ namespace Entities.Models
         public string WorkerType { get; set; }
         public string Vacancy { get; set; }
         
-        
     }
 }

@@ -33,13 +33,14 @@ namespace EasyFlow.Controllers
             return Ok(companiesDto);
 
         }
-        [HttpGet("{CompanyName}")]
-        public IActionResult GetCompany(string CompanyName)
+        [HttpGet("{companyName}")]
+        public IActionResult GetCompanyById(string companyName)
         {
-            var company = _repository.company.GetCompanyFromName(CompanyName,trackChanges:false);
+
+            var company = _repository.company.GetCompanyFromName(companyName,trackChanges:false);
             if (company == null)
             {
-                _logger.LogInfo($" Company with id {CompanyName} doesn't exist in the Database");
+                _logger.LogInfo($" Company with id {companyName} doesn't exist in the Database");
                 return NotFound();
             }
             var companyDto = _mapper.Map<CompanyDto>(company);
@@ -124,6 +125,19 @@ namespace EasyFlow.Controllers
            
 
         }
-      
+
+        [HttpPost("request/{companyId}")]
+        public IActionResult RequestAdminForWorker(string companyId, CompaniesRequestsDto companiesRequestsDto)
+        {
+            if (companiesRequestsDto.WorkerType != null || companiesRequestsDto.Location != null || companiesRequestsDto.Vacancy !=null)
+            {
+                var company = GetCompanyById(companyId);
+                return BadRequest(company);
+                
+            }
+            return BadRequest(companiesRequestsDto);
+
+        }
+
     }
 }

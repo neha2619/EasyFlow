@@ -34,6 +34,7 @@ namespace EasyFlow.Controllers
         [HttpPost("register")]
          public IActionResult RegisterAdmin([FromBody] AdminForRegistrationDto admin)
         {
+            
             if (admin == null)
             {
                 _logger.LogError("AdminForRegistration object sent from the client is null");
