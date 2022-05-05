@@ -13,6 +13,7 @@ namespace Contracts
         bool IsGstinValid(string gstin);
         bool IsCinValid(string cin);
         bool IsAadhaarValid(string aadhaar);
+        bool IsPasswdStrong(string passwd);
 
     }
 }

@@ -17,11 +17,13 @@ namespace EasyFlow.Controllers
        
         private readonly ILoggerManager _logger;
         private readonly IMapper _mapper;
-        public AdminController(IRepositoryManager repository, ILoggerManager logger, IMapper mapper)
+        private readonly IGlobalValidationUtil _validate;
+        public AdminController(IRepositoryManager repository, ILoggerManager logger, IMapper mapper, IGlobalValidationUtil validate)
         {
             _repository = repository;
             _logger = logger;
             _mapper = mapper;
+            _validate = validate;
         }
         [HttpGet( Name = "AdminById")]
         public IActionResult GetAdmin()
@@ -42,7 +44,21 @@ namespace EasyFlow.Controllers
                 _logger.LogError("AdminForRegistration object sent from the client is null");
                 return BadRequest("AdminForRegistration Object is Null");
             }
-
+            if (!(_validate.IsEmailValid(admin.Email)))
+            {
+                _logger.LogInfo("Email is invalid ");
+                return BadRequest("Invalid Email");
+            }
+            if (!(_validate.IsMobileValid(admin.Mobile)))
+            {
+                _logger.LogError("Company Mobile Number is Not Valid");
+                return BadRequest("Invalid Mobile");
+            }
+            if (!(_validate.IsPasswdStrong(admin.Pass)))
+            {
+                _logger.LogError("Password is too weak");
+                return BadRequest("Password is too weak");
+            }
             var adminEntity = _mapper.Map<Admin>(admin);
             _repository.Admin.CreateAdmin(adminEntity);
             _repository.Save();
@@ -59,6 +75,11 @@ namespace EasyFlow.Controllers
             }
             if (adminLogin.Mobile != null)
             {
+                if (!(_validate.IsMobileValid(adminLogin.Mobile)))
+                {
+                    _logger.LogError("Company Mobile Number is Not Valid");
+                    return BadRequest("Invalid Mobile");
+                }
                 if (adminLogin.Pass != null)
                 {
                     var Admin = _repository.Admin.GetAdminPasswordFromMobile(adminLogin.Mobile, trackChanges: false);
@@ -84,6 +105,11 @@ namespace EasyFlow.Controllers
 
                 if (adminLogin.Email != null && adminLogin.Pass != null)
                 {
+                    if (!(_validate.IsEmailValid(adminLogin.Email)))
+                    {
+                        _logger.LogInfo("Email is invalid ");
+                        return BadRequest("Invalid Email");
+                    }
                     var Admin = _repository.Admin.GetAdminPasswordFromEmail(adminLogin.Email, trackChanges: false);
 
                     if (Admin != null)

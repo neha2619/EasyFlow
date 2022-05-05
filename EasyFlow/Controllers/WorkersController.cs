@@ -17,11 +17,14 @@ namespace EasyFlow.Controllers
         private readonly IRepositoryManager _repository;
         private readonly ILoggerManager _logger;
         private readonly IMapper _mapper;
-        public WorkersController(IRepositoryManager repository,ILoggerManager logger, IMapper mapper)
+        private readonly IGlobalValidationUtil _validate;
+
+        public WorkersController(IRepositoryManager repository,ILoggerManager logger, IMapper mapper, IGlobalValidationUtil validate)
         {
             _repository = repository;
             _logger = logger;
             _mapper = mapper;
+            _validate = validate;   
         }
         [HttpGet(Name = "WorkerById")]
         public IActionResult GetWorkers()
@@ -33,13 +36,30 @@ namespace EasyFlow.Controllers
             return Ok(workersDto);
 
         }
-
         [HttpPost("register")]
-        public IActionResult RegisterWorker(WorkerForRegistrationDto worker)
+        public IActionResult RegisterWorker([FromBody] WorkerForRegistrationDto worker)
         {
           
            if (worker != null )
             {
+
+                if (!(_validate.IsEmailValid(worker.WorkerMail)))
+                {
+                    _logger.LogInfo("Email is invalid ");
+                    return BadRequest("Invalid Email");
+                }
+                if (!(_validate.IsMobileValid(worker.WorkerMobile)))
+                {
+                    _logger.LogError("Worker Mobile Number is Not Valid");
+                    return BadRequest("Invalid Mobile");
+                }
+                if (!(_validate.IsPasswdStrong(worker.WorkerPass)))
+                {
+
+                    _logger.LogError("Password is too weak");
+                    return BadRequest("Password is too weak");
+                }
+
                 var workerEntity = _mapper.Map<Worker>(worker);
                 _repository.Worker.Create(workerEntity);
                 _repository.Save();
@@ -60,8 +80,15 @@ namespace EasyFlow.Controllers
             }
             if (workerLogin.Mobile != null)
             {
+                if (!(_validate.IsMobileValid(workerLogin.Mobile)))
+                {
+                    _logger.LogError("Worker Mobile Number is Not Valid");
+                    return BadRequest("Invalid Mobile");
+                }
                 if (workerLogin.Pass != null)
                 {
+                   
+
                     var Worker = _repository.Worker.GetWorkerPasswordFromMobile(workerLogin.Mobile, trackChanges: false);
 
                     if (Worker != null)

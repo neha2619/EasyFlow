@@ -39,15 +39,15 @@ namespace EasyFlow
             services.ConfigureLoggerService();
             services.ConfigureSqlContext(Configuration);
             services.ConfigureRepositoryManager();
+            services.ConfigureUtilServices();
             services.AddAutoMapper(typeof(Startup));
+            services.ConfigureUtilServices();
             services.AddControllers(config =>
             {
                 config.RespectBrowserAcceptHeader = true;
                 config.ReturnHttpNotAcceptable = true;
             }).AddNewtonsoftJson()
  .AddXmlDataContractSerializerFormatters();
- 
-                
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

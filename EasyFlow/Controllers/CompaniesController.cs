@@ -18,27 +18,30 @@ namespace EasyFlow.Controllers
         private readonly IRepositoryManager _repository;
         private readonly ILoggerManager _logger;
         private readonly IMapper _mapper;
+        private readonly IGlobalValidationUtil _validate;
         public CompaniesController(IRepositoryManager repository, ILoggerManager logger, IMapper
-            mapper)
+            mapper, IGlobalValidationUtil validate)
         {
             _repository = repository;
             _logger = logger;
             _mapper = mapper;
+            _validate = validate;
         }
-        [HttpGet( Name = "CompanyById")]
+        [HttpGet(Name = "CompanyById")]
         public IActionResult GetCompanies()
         {
             var companies = _repository.company.GetAllCompanies(trackChanges: false);
             var companiesDto = _mapper.Map<IEnumerable<CompanyDto>>(companies);
-            
+
             return Ok(companiesDto);
 
         }
+      
         [HttpGet("{companyName}")]
         public IActionResult GetCompanyById(string companyName)
         {
 
-            var company = _repository.company.GetCompanyFromName(companyName,trackChanges:false);
+            var company = _repository.company.GetCompanyFromName(companyName, trackChanges: false);
             if (company == null)
             {
                 _logger.LogInfo($" Company with id {companyName} doesn't exist in the Database");
@@ -50,39 +53,75 @@ namespace EasyFlow.Controllers
         [HttpPost("register")]
         public IActionResult RegisterCompany([FromBody] CompanyForCreationDto companyCreation)
         {
-            if (companyCreation.CompanyName != null && companyCreation.CompanyName != null && companyCreation.CompanyCin != null && companyCreation.CompanyGstin != null && companyCreation.CompanyMail != null && companyCreation.CompanyPass != null && companyCreation.CompanyMobile != null)
+            if (companyCreation.CompanyName != "" && companyCreation.CompanyName != "" && companyCreation.CompanyCin != "" && companyCreation.CompanyGstin != "" && companyCreation.CompanyMail != "" && companyCreation.CompanyPass != "" && companyCreation.CompanyMobile != "")
             {
 
-                var company = _repository.company.GetCompanyFromName(companyCreation.CompanyName, trackChanges: false);
-                if (company == null)
+                if (!(_validate.IsEmailValid(companyCreation.CompanyMail)))
                 {
-                    var companyEntity = _mapper.Map<company>(companyCreation);
-                    _repository.company.CreateCompany(companyEntity);
-                    _repository.Save();
-                    var companyToReturn = _mapper.Map<CompanyRegistrationDto>(companyEntity);
-                    return CreatedAtRoute("CompanyById", new { id = companyToReturn.Id },
-                   companyToReturn);
+                    _logger.LogInfo("Email is invalid ");
+                    return BadRequest("Invalid Email");
                 }
-                _logger.LogError("Commpany Name Already Registered");
-                return BadRequest("Company Alreay Registered");
-               
+                if (!(_validate.IsCinValid(companyCreation.CompanyCin)))
+                {
+                    _logger.LogError("Company Identification Number must be of 21 characters");
+                    return BadRequest("Company Identification Number must be of 21 characters");
+                }
+                if (!(_validate.IsGstinValid(companyCreation.CompanyGstin)))
+                {
+                    _logger.LogError("Company GST Number must be of 16 characters");
+                    return BadRequest("Company GST Number must be of 15 digits");
+                }
+                if (!(_validate.IsMobileValid(companyCreation.CompanyMobile)))
+                {
+                    _logger.LogError("Company Mobile Number is Not Valid");
+                    return BadRequest("Invalid Mobile");
+                }
+                if (!(_validate.IsPasswdStrong(companyCreation.CompanyPass)))
+                {
+
+                    _logger.LogError("Password is too weak");
+                    return BadRequest("Password is too weak");
+                }
+
+
+
+                var company = _repository.company.GetCompanyFromName(companyCreation.CompanyName, trackChanges: false);
+                if (company != null)
+                {
+                    _logger.LogError("Commpany Name Already Registered");
+                    return BadRequest("Company Already Registered");
+
+                }
+                var companyEntity = _mapper.Map<company>(companyCreation);
+                _repository.company.CreateCompany(companyEntity);
+                _repository.Save();
+                var companyToReturn = _mapper.Map<CompanyRegistrationDto>(companyEntity);
+                return CreatedAtRoute("CompanyById", new { id = companyToReturn.Id },
+               companyToReturn);
             }
             _logger.LogError("Fields can not be null in Company Registeration");
             return BadRequest("Fields can not be null in Company Registeration");
-            
+
         }
 
         [HttpGet("login")]
         public IActionResult LoginCompanyByEmail([FromBody] LoginDto companyLogin)
         {
-            if (companyLogin.Email != null && companyLogin.Mobile!=null && companyLogin.Pass !=null)
+            if (companyLogin.Email != null && companyLogin.Mobile != null && companyLogin.Pass != null)
             {
                 return StatusCode(405, "Now Allowed");
             }
             if (companyLogin.Mobile != null)
             {
+
                 if (companyLogin.Pass != null)
                 {
+                    if (!(_validate.IsMobileValid(companyLogin.Mobile)))
+                    {
+                        _logger.LogError("Company Mobile Number is Not Valid");
+                        return BadRequest("Invalid Mobile");
+                    }
+
                     var company = _repository.company.GetCompanyPasswordFromMobile(companyLogin.Mobile, trackChanges: false);
 
                     if (company != null)
@@ -103,9 +142,17 @@ namespace EasyFlow.Controllers
             }
             else
             {
-               
+
                 if (companyLogin.Email != null && companyLogin.Pass != null)
                 {
+                  
+
+                    if (!(_validate.IsEmailValid(companyLogin.Email)))
+                    {
+                        _logger.LogInfo("Email is invalid ");
+                        return BadRequest("Invalid Email");
+                    }
+
                     var company = _repository.company.GetCompanyPasswordFromEmail(companyLogin.Email, trackChanges: false);
 
                     if (company != null)
@@ -123,22 +170,21 @@ namespace EasyFlow.Controllers
             }
             _logger.LogError("Fields can not be null");
             return BadRequest("Fields can not be null");
-           
-
         }
 
         [HttpPost("request/{companyId}")]
         public IActionResult RequestAdminForWorker(string companyId, CompaniesRequestsDto companiesRequestsDto)
         {
-            if (companiesRequestsDto.WorkerType != null || companiesRequestsDto.Location != null || companiesRequestsDto.Vacancy !=null)
+            if (companiesRequestsDto.WorkerType != null || companiesRequestsDto.Location != null || companiesRequestsDto.Vacancy != null)
             {
                 var company = GetCompanyById(companyId);
                 return BadRequest(company);
-                
+
             }
             return BadRequest(companiesRequestsDto);
 
         }
+
         [HttpPatch("{mobile}")]
         public IActionResult PartiallyUpdateCompany(string mobile,
 [FromBody] JsonPatchDocument<CompanyUpdateDto> patchDoc)

@@ -42,6 +42,4 @@ namespace Repository
  FindByCondition(c => c.CompanyMobile.Equals(CompanyMobile), trackChanges)
  .SingleOrDefault();
     }
-
-
 }
