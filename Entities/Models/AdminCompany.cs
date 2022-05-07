@@ -14,10 +14,10 @@ namespace Entities.Models
         public Guid Id { get; set; }
         [ForeignKey(nameof(company))]
         public Guid CompanyId { get; set; }
-        public company Company { get; set; }
         public string Location { get; set; }
         public string WorkerType { get; set; }
         public string Vacancy { get; set; }
-        
+        public company Company { get; set; }
+
     }
 }

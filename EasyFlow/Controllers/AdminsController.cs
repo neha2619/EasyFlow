@@ -152,5 +152,12 @@ namespace EasyFlow.Controllers
             _repository.Save();
             return NoContent();
         }
+
+        [HttpGet("getworkerbytype")]
+        public IActionResult PostRequestsForWorker()
+        {
+
+            return BadRequest();
+        }
     }
 }

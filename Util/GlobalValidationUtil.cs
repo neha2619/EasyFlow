@@ -13,7 +13,7 @@ namespace Util
         Regex GSTIN_PATTERN = new Regex(@"^[0-9]{15}");
         Regex CIN_PATTERN = new Regex(@"^[0-9a-zA-z]{21}");
         Regex AADHAAR_PATTERN = new Regex(@"^[0-9]{12}");
-        Regex STRING_PATTERN = new Regex(@"^[a-z]{12}");
+        Regex STRING_PATTERN = new Regex(@"^[a-zA-Z]");
 
         Regex hasNumber = new Regex(@"[0-9]+");
         Regex hasUpperChar = new Regex(@"[A-Z]+");
@@ -66,6 +66,27 @@ namespace Util
             }
             return CIN_PATTERN.IsMatch(cin);
         }
+
+        public bool IsNumberValid(string num)
+        {
+            if (num == null)
+            {
+                return false;
+            }
+            return hasNumber.IsMatch(num);
+        }
+        
+        public bool IsStringValid(string str)
+        {
+            if (str == null)
+            {
+                return false;
+            }
+            return STRING_PATTERN.IsMatch( str);
+        }
+
+
+
         public bool IsAadhaarValid(string aadhaar)
         {
             if (aadhaar == null)

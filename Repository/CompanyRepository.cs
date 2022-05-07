@@ -23,9 +23,10 @@ namespace Repository
         public void CreateCompany(company company) => Create(company);
 
 
-        public company GetCompanyFromId(string CompanyID, bool trackChanges) =>
+        public company GetCompanyFromId(Guid CompanyID, bool trackChanges) =>
  FindByCondition(c => c.Id.Equals(CompanyID), trackChanges)
  .SingleOrDefault();
+
         public company GetCompanyFromName(string CompanyName, bool trackChanges) =>
  FindByCondition(c => c.CompanyName.Equals(CompanyName), trackChanges)
  .SingleOrDefault();
@@ -38,6 +39,7 @@ namespace Repository
         public company GetCompanyPasswordFromMobile(string CompanyMobile, bool trackChanges) =>
  FindByCondition(c => c.CompanyMobile.Equals(CompanyMobile), trackChanges)
  .SingleOrDefault();
+
         public company GetCompanyFromMobile(string CompanyMobile, bool trackChanges) =>
  FindByCondition(c => c.CompanyMobile.Equals(CompanyMobile), trackChanges)
  .SingleOrDefault();

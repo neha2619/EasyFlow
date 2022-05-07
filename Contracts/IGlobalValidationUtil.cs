@@ -15,5 +15,9 @@ namespace Contracts
         bool IsAadhaarValid(string aadhaar);
         bool IsPasswdStrong(string passwd);
 
+        bool IsNumberValid(string num);
+        bool IsStringValid(string str);
+
+
     }
 }

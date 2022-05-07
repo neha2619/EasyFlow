@@ -16,7 +16,14 @@ namespace Repository
  : base(repositoryContext)
         {
         }
+
         public void CreateRequest(AdminCompany adminrequest) => Create(adminrequest);
+        public IEnumerable<AdminCompany> GetAllRequest(bool trackChanges) =>
+ FindAll(trackChanges)
+ .OrderBy(c => c.WorkerType)
+ .ToList();
+
+
 
     }
 }

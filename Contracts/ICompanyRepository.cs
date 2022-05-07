@@ -10,7 +10,7 @@ namespace Contracts
     public interface ICompanyRepository
     {
         IEnumerable<company> GetAllCompanies(bool trackChanges);
-        company GetCompanyFromId(string CompanyId, bool trackChanges);
+        company GetCompanyFromId(Guid CompanyId, bool trackChanges);
         company GetCompanyFromName(string CompanyName, bool trackChanges);
        
         company GetCompanyPasswordFromEmail(string CompanyEmail, bool trackChanges);

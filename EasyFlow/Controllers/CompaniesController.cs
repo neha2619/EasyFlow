@@ -27,7 +27,7 @@ namespace EasyFlow.Controllers
             _mapper = mapper;
             _validate = validate;
         }
-        [HttpGet(Name = "CompanyById")]
+        [HttpGet(Name ="companyById")]
         public IActionResult GetCompanies()
         {
             var companies = _repository.company.GetAllCompanies(trackChanges: false);
@@ -38,18 +38,35 @@ namespace EasyFlow.Controllers
         }
       
         [HttpGet("{companyName}")]
-        public IActionResult GetCompanyById(string companyName)
+        public IActionResult GetCompanyByName(string companyName)
         {
 
             var company = _repository.company.GetCompanyFromName(companyName, trackChanges: false);
             if (company == null)
             {
-                _logger.LogInfo($" Company with id {companyName} doesn't exist in the Database");
+                _logger.LogInfo($" Company with Name {companyName} doesn't exist in the Database");
                 return NotFound();
             }
             var companyDto = _mapper.Map<CompanyDto>(company);
             return Ok(companyDto);
         }
+        
+        [HttpGet("byid/{companyId}")]
+        public IActionResult GetCompanyById(Guid companyId)
+        {
+
+            var company = _repository.company.GetCompanyFromId(companyId, trackChanges: false);
+            if (company != null)
+            {
+                var companyDto = _mapper.Map<CompanyDto>(company);
+                return NoContent();
+            }
+            
+            _logger.LogInfo($" Company with id {companyId} doesn't exist in the Database");
+            return BadRequest();
+        }
+
+
         [HttpPost("register")]
         public IActionResult RegisterCompany([FromBody] CompanyForCreationDto companyCreation)
         {
@@ -173,16 +190,29 @@ namespace EasyFlow.Controllers
         }
 
         [HttpPost("request/{companyId}")]
-        public IActionResult RequestAdminForWorker(string companyId, CompaniesRequestsDto companiesRequestsDto)
+        public IActionResult RequestAdminForWorker(Guid companyId, CompaniesRequestsDto companiesRequestsDto)
         {
             if (companiesRequestsDto.WorkerType != null || companiesRequestsDto.Location != null || companiesRequestsDto.Vacancy != null)
             {
                 var company = GetCompanyById(companyId);
-                return BadRequest(company);
-
+                if (company != null)
+                {
+                    if (_validate.IsNumberValid(companiesRequestsDto.Vacancy) && _validate.IsStringValid(companiesRequestsDto.WorkerType))
+                        if (Convert.ToInt64(companiesRequestsDto.Vacancy) > 0)
+                        {
+                            companiesRequestsDto.CompanyID = companyId;
+                            var requestEntity = _mapper.Map<AdminCompany>(companiesRequestsDto);
+                            _logger.LogInfo(requestEntity.Vacancy.ToString());
+                            _repository.AdminCompany.CreateRequest(requestEntity);
+                            _repository.Save();
+                            var requesttoreturn = _mapper.Map<CompaniesRequestsDto>(requestEntity);
+                            return Ok(requesttoreturn);
+                        }
+                    _logger.LogError("Entered Request Details are Invalid");
+                    return BadRequest();
+                }
             }
             return BadRequest(companiesRequestsDto);
-
         }
 
         [HttpPatch("{mobile}")]
@@ -208,6 +238,5 @@ namespace EasyFlow.Controllers
             _repository.Save();
             return NoContent();
         }
-
     }
 }
