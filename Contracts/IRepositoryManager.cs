@@ -13,6 +13,7 @@ namespace Contracts
         IAdminRepository Admin { get; }
         IAdminWorkerRepository AdminWorker { get; }
         IAdminCompanyRepository AdminCompany { get; }
+        
         void Save();
 
     }

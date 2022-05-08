@@ -154,6 +154,31 @@ namespace EasyFlow.Controllers
             _repository.Save();
             return NoContent();
         }
+        
+        [HttpPost("apply/{workerId}")]
+        public IActionResult RequestForJob(Guid workerId , WorkerRequestToCompanyDto requestDto)
+        {
+            if (workerId != null)
+            {
+                var worker = _repository.Worker.GetWorkerFromId(workerId ,trackChanges: false);
+                if (worker != null)
+                {
+                    if (!(_validate.IsStringValid(requestDto.WorkerType)) && !(_validate.IsStringValid(requestDto.RequestState)))
+                    {
+                        _logger.LogError("Entered Request Details are Invalid");
+                        return BadRequest();
+                    }
+                    requestDto.WorkerId = workerId;
+                    var workerRequest = _mapper.Map<AdminWorker>(requestDto);
+                    _repository.AdminWorker.CreateRequest(workerRequest);
+                    var requestToReturn = _mapper.Map<WorkerRequestToCompanyDto>(workerRequest);
+                    _repository.Save();
+                    return Ok(requestToReturn);
 
+                }
+                return BadRequest("worker Not Found");
+            }
+            return BadRequest();
+        }
     }
 }

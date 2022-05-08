@@ -202,7 +202,8 @@ namespace EasyFlow.Controllers
                         {
                             companiesRequestsDto.CompanyID = companyId;
                             var requestEntity = _mapper.Map<AdminCompany>(companiesRequestsDto);
-                            _logger.LogInfo(requestEntity.Vacancy.ToString());
+                            //_logger.LogInfo(requestEntity.Vacancy.ToString());
+                            //REMOVE THIS LINE
                             _repository.AdminCompany.CreateRequest(requestEntity);
                             _repository.Save();
                             var requesttoreturn = _mapper.Map<CompaniesRequestsDto>(requestEntity);

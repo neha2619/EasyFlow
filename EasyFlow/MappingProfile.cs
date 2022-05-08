@@ -16,6 +16,8 @@ namespace EasyFlow
             CreateMap<company, CompanyRegistrationDto>();
 
             CreateMap<Worker, WorkerDto>();
+            CreateMap<WorkerDto,Worker>();
+
             CreateMap<Admin, AdminDto>();
             CreateMap<CompanyForCreationDto, company>();
 
@@ -23,6 +25,9 @@ namespace EasyFlow
             CreateMap<WorkerForRegistrationDto, Worker>();
            CreateMap< CompaniesRequestsDto, AdminCompany>();
            CreateMap< AdminCompany, CompaniesRequestsDto>();
+
+            CreateMap<WorkerRequestToCompanyDto, AdminWorker>();
+            CreateMap< AdminWorker , WorkerRequestToCompanyDto>();
 
             CreateMap<WorkerUpdateDto, Worker>();
              CreateMap<WorkerUpdateDto, Worker>().ReverseMap();

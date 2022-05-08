@@ -97,27 +97,6 @@ namespace EasyFlow.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Entities.Models.AdminReq", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("Id");
-
-                    b.Property<Guid>("CompanyId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("RequestState")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("WorkerId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("AdminReq");
-                });
-
             modelBuilder.Entity("Entities.Models.AdminWorker", b =>
                 {
                     b.Property<Guid>("Id")
@@ -150,6 +129,27 @@ namespace EasyFlow.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Entities.Models.CompanyReq", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("Id");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("RequestStatus")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("WorkerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("CompanyReq");
+                });
+
             modelBuilder.Entity("Entities.Models.PreviousWorker", b =>
                 {
                     b.Property<Guid>("Id")
@@ -162,9 +162,6 @@ namespace EasyFlow.Migrations
 
                     b.Property<Guid>("WorkerId")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("WorkerState")
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -270,7 +267,7 @@ namespace EasyFlow.Migrations
                     b.Property<string>("Location")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("RequestState")
+                    b.Property<string>("RequestStatus")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("WorkerId")

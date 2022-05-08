@@ -9,6 +9,6 @@ namespace Contracts
 {
     public interface IAdminCompanyRepository
     {
-        void CreateRequest(AdminCompany admin);
+       void CreateRequest(AdminCompany companiesRequest);
     }
 }

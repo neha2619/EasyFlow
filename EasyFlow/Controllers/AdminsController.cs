@@ -14,7 +14,7 @@ namespace EasyFlow.Controllers
     public class AdminController : ControllerBase
     {
         private readonly IRepositoryManager _repository;
-       
+
         private readonly ILoggerManager _logger;
         private readonly IMapper _mapper;
         private readonly IGlobalValidationUtil _validate;
@@ -25,10 +25,10 @@ namespace EasyFlow.Controllers
             _mapper = mapper;
             _validate = validate;
         }
-        [HttpGet( Name = "AdminById")]
+        [HttpGet(Name = "AdminById")]
         public IActionResult GetAdmin()
         {
-            
+
             var admin = _repository.Admin.GetAllAdmin(trackChanges: false);
             var adminDto = _mapper.Map<IEnumerable<AdminDto>>(admin);
 
@@ -36,9 +36,9 @@ namespace EasyFlow.Controllers
 
         }
         [HttpPost("register")]
-         public IActionResult RegisterAdmin([FromBody] AdminForRegistrationDto admin)
+        public IActionResult RegisterAdmin([FromBody] AdminForRegistrationDto admin)
         {
-            
+
             if (admin == null)
             {
                 _logger.LogError("AdminForRegistration object sent from the client is null");
@@ -63,10 +63,10 @@ namespace EasyFlow.Controllers
             _repository.Admin.CreateAdmin(adminEntity);
             _repository.Save();
             var adminToReturn = _mapper.Map<AdminDto>(adminEntity);
-            return  CreatedAtRoute("AdminById", new { id = adminToReturn.Id },
+            return CreatedAtRoute("AdminById", new { id = adminToReturn.Id },
            adminToReturn);
         }
-       [HttpGet("login")]
+        [HttpGet("login")]
         public IActionResult LoginAdmin([FromBody] LoginDto adminLogin)
         {
             if (adminLogin.Email != null && adminLogin.Mobile != null && adminLogin.Pass != null)
@@ -153,10 +153,22 @@ namespace EasyFlow.Controllers
             return NoContent();
         }
 
-        [HttpGet("getworkerbytype")]
-        public IActionResult PostRequestsForWorker()
+        [HttpPost("postrequest/{type}")]
+        public IActionResult PostRequestsForWorker(string type)
         {
 
+            if (type != null && !(_validate.IsStringValid(type)))
+            {
+                var workers = _repository.Worker.GetWorkerFromType(type, trackChanges: false);
+                var workersDto = _mapper.Map<IEnumerable<WorkerDto>>(workers);
+                foreach(WorkerDto worr in workersDto)
+                {
+                    _logger.LogInfo(worr.Id.ToString());
+                }
+                return Ok(workers); 
+
+            }
+            _logger.LogError("Entered Request Details are Invalid");
             return BadRequest();
         }
     }

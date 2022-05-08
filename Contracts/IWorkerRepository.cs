@@ -12,9 +12,10 @@ namespace Contracts
         IEnumerable<Worker> GetAllWorkers(bool trackChanges);
         void AddWorker(Worker worker);
         Worker GetWorkerPasswordFromMobile(string WorkerMobile, bool trackChanges);
+        IEnumerable<Worker> GetWorkerFromType(string WorkerType, bool trackChanges);
         Worker GetWorkerPasswordFromEmail(string WorkerEmail, bool trackChanges);
         Worker GetWorkerFromMobile(string WorkerMobile, bool trackChanges);
-
+        Worker GetWorkerFromId(Guid workerId, bool trackChanges);
 
     }
 }
