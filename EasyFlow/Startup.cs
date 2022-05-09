@@ -39,9 +39,9 @@ namespace EasyFlow
             services.ConfigureLoggerService();
             services.ConfigureSqlContext(Configuration);
             services.ConfigureRepositoryManager();
-            services.ConfigureUtilServices();
+            services.ConfigureValidationServices();
             services.AddAutoMapper(typeof(Startup));
-            services.ConfigureUtilServices();
+            services.ConfigureUtilityServices();
             services.AddControllers(config =>
             {
                 config.RespectBrowserAcceptHeader = true;

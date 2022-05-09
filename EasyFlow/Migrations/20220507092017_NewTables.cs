@@ -3,10 +3,24 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace EasyFlow.Migrations
 {
-    public partial class DBCreation : Migration
+    public partial class NewTables : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "AdminReq",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CompanyId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    WorkerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    RequestState = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AdminReq", x => x.Id);
+                });
+
             migrationBuilder.CreateTable(
                 name: "Admins",
                 columns: table => new
@@ -50,6 +64,35 @@ namespace EasyFlow.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "PreviousWorker",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CompanyId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    WorkerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    WorkerState = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PreviousWorker", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "WorkerReq",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    WorkerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    WorkerType = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Location = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    RequestState = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_WorkerReq", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "AdminCompanyies",
                 columns: table => new
                 {
@@ -85,6 +128,7 @@ namespace EasyFlow.Migrations
                     WorkerPass = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: true),
                     WorkerType = table.Column<string>(type: "nvarchar(80)", maxLength: 80, nullable: true),
                     LocationPreference = table.Column<string>(type: "nvarchar(180)", maxLength: 180, nullable: true),
+                    Ratings = table.Column<int>(type: "int", nullable: false),
                     companyId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
                 },
                 constraints: table =>
@@ -134,11 +178,11 @@ namespace EasyFlow.Migrations
 
             migrationBuilder.InsertData(
                 table: "Workers",
-                columns: new[] { "WorkerId", "CreatedOn", "KYCStatus", "LocationPreference", "UpdatedOn", "WorkerAadhar", "WorkerMail", "WorkerMobile", "WorkerName", "WorkerPass", "WorkerType", "companyId" },
+                columns: new[] { "WorkerId", "CreatedOn", "KYCStatus", "LocationPreference", "Ratings", "UpdatedOn", "WorkerAadhar", "WorkerMail", "WorkerMobile", "WorkerName", "WorkerPass", "WorkerType", "companyId" },
                 values: new object[,]
                 {
-                    { new Guid("46a32c93-1663-447f-8801-db7db9c42719"), "24.04.2022", "Yes", "Alambag,charbag", "12.05.2022", "123456789012", "Samraiden@gmail.com", "8976543209", "Sam Raiden", "hjhfdjgjgg", "Plumber", null },
-                    { new Guid("76ed4298-c549-465b-af8f-a80abae08616"), "21.04.2022", "No", "Hazaratganj,Aashiyana", "11.05.2022", "120000789012", "Ronraiden@gmail.com", "8976786209", "Ron Raiden", "hjhfdjsdsdgjgg", "Carpenter", null }
+                    { new Guid("46a32c93-1663-447f-8801-db7db9c42719"), "24.04.2022", "Yes", "Alambag,charbag", 0, "12.05.2022", "123456789012", "Samraiden@gmail.com", "8976543209", "Sam Raiden", "hjhfdjgjgg", "Plumber", null },
+                    { new Guid("76ed4298-c549-465b-af8f-a80abae08616"), "21.04.2022", "No", "Hazaratganj,Aashiyana", 0, "11.05.2022", "120000789012", "Ronraiden@gmail.com", "8976786209", "Ron Raiden", "hjhfdjsdsdgjgg", "Carpenter", null }
                 });
 
             migrationBuilder.InsertData(
@@ -178,10 +222,19 @@ namespace EasyFlow.Migrations
                 name: "AdminCompanyies");
 
             migrationBuilder.DropTable(
+                name: "AdminReq");
+
+            migrationBuilder.DropTable(
                 name: "Admins");
 
             migrationBuilder.DropTable(
                 name: "AdminWorkers");
+
+            migrationBuilder.DropTable(
+                name: "PreviousWorker");
+
+            migrationBuilder.DropTable(
+                name: "WorkerReq");
 
             migrationBuilder.DropTable(
                 name: "Workers");

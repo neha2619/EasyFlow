@@ -18,7 +18,7 @@ namespace Repository
         }
 
         public void CreateRequest(AdminCompany adminrequest) => Create(adminrequest);
-        public IEnumerable<AdminCompany> GetAllRequest(bool trackChanges) =>
+        public IEnumerable<AdminCompany> GetAllRequest(string workerType,bool trackChanges) =>
  FindAll(trackChanges)
  .OrderBy(c => c.WorkerType)
  .ToList();

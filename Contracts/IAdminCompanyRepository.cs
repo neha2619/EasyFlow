@@ -10,5 +10,6 @@ namespace Contracts
     public interface IAdminCompanyRepository
     {
        void CreateRequest(AdminCompany companiesRequest);
+        IEnumerable<AdminCompany> GetAllRequest(string workerType,bool trackChanges);
     }
 }

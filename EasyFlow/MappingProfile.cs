@@ -38,6 +38,10 @@ namespace EasyFlow
             CreateMap<AdminUpdateDto, Admin>(); 
             CreateMap<AdminUpdateDto, Admin>().ReverseMap();
 
+            CreateMap<OTPs,OTPs>();
+
+            CreateMap<Admin,ChangePasswordDto>();
+
         }
     }
 }

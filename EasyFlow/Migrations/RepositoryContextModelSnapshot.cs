@@ -150,6 +150,25 @@ namespace EasyFlow.Migrations
                     b.ToTable("CompanyReq");
                 });
 
+            modelBuilder.Entity("Entities.Models.OTPs", b =>
+                {
+                    b.Property<Guid>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("Id");
+
+                    b.Property<string>("recipientEmail")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("timestamp")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("id");
+
+                    b.ToTable("OTPs");
+                });
+
             modelBuilder.Entity("Entities.Models.PreviousWorker", b =>
                 {
                     b.Property<Guid>("Id")

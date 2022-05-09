@@ -5,7 +5,11 @@ using Entities.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
+
+//using System.Threading;
+using System.Timers;
 
 namespace EasyFlow.Controllers
 {
@@ -18,12 +22,23 @@ namespace EasyFlow.Controllers
         private readonly ILoggerManager _logger;
         private readonly IMapper _mapper;
         private readonly IGlobalValidationUtil _validate;
-        public AdminController(IRepositoryManager repository, ILoggerManager logger, IMapper mapper, IGlobalValidationUtil validate)
+        private readonly IUtil _utilities;
+        private static bool otpMatched = false;
+        OTPs oTPs;
+
+
+        private static int  GeneratedOtp = 0;
+
+        public AdminController(IRepositoryManager repository, ILoggerManager logger, IMapper mapper, IGlobalValidationUtil validate, IUtil utilities)
         {
             _repository = repository;
             _logger = logger;
             _mapper = mapper;
             _validate = validate;
+            _utilities = utilities;
+            oTPs = new OTPs();
+
+
         }
         [HttpGet(Name = "AdminById")]
         public IActionResult GetAdmin()
@@ -88,21 +103,19 @@ namespace EasyFlow.Controllers
                     {
                         if (adminLogin.Pass.Equals(Admin.Pass))
                         {
+                           
                             return Ok($"Login Successful");
                         }
                         return BadRequest("Password Incorrect");
-
                     }
                     _logger.LogInfo($"Admin with Mobile {adminLogin.Mobile} not found");
                     return BadRequest($"Admin with Mobile {adminLogin.Mobile} not found");
                 }
                 _logger.LogError("Fields can not be null");
                 return BadRequest("Fields can not be null");
-
             }
             else
             {
-
                 if (adminLogin.Email != null && adminLogin.Pass != null)
                 {
                     if (!(_validate.IsEmailValid(adminLogin.Email)))
@@ -159,17 +172,84 @@ namespace EasyFlow.Controllers
 
             if (type != null && !(_validate.IsStringValid(type)))
             {
-                var workers = _repository.Worker.GetWorkerFromType(type, trackChanges: false);
-                var workersDto = _mapper.Map<IEnumerable<WorkerDto>>(workers);
+                var workersFound = _repository.AdminCompany.GetAllRequest(type, trackChanges:false);
+                var workersDto = _mapper.Map<IEnumerable<WorkerDto>>(workersFound);
                 foreach(WorkerDto worr in workersDto)
                 {
                     _logger.LogInfo(worr.Id.ToString());
                 }
-                return Ok(workers); 
+                return Ok(workersFound); 
 
             }
             _logger.LogError("Entered Request Details are Invalid");
             return BadRequest();
+        }
+        [HttpGet("sendotp")]
+        public IActionResult SendOtp(OtpsDto OtpDto)
+        {
+            
+            if (!_validate.IsEmailValid(OtpDto.email))
+            {
+                _logger.LogError("Email is not valid");
+                return BadRequest("Email is not Valid");
+            }
+            GeneratedOtp = _utilities.GenerateOtp();
+            try
+            {
+                string sub = "OTP FOR RESET PASSWORD";
+                string body = "Hello the OTP to reset your password is :\n" + GeneratedOtp.ToString() + "\n It is valid for 120 seconds";
+                _utilities.SendEmail(OtpDto.email, body, sub);
+                var otp = _mapper.Map<OTPs>(oTPs);
+                otp.recipientEmail = OtpDto.email;
+               otp.timestamp = DateTime.Now.ToString();
+                _logger.LogInfo(otp.timestamp);
+
+               _repository.oTPs.CreateOtpObject(otp);
+                _repository.Save();
+            }
+            catch (Exception e)
+            {
+               _logger.LogError(e.ToString());
+                return BadRequest(e.Message);
+            }
+            return Ok();
+        }
+        [HttpPost("verifyotp")]
+        public IActionResult ChangePassword(OtpsDto OtpDto)
+        {
+            if (!_validate.IsEmailValid(OtpDto.email))
+            {
+                _logger.LogError("Email not Valid");
+                return BadRequest();
+            }
+            var Otps = _repository.oTPs.GetOTPTimestampFromEmail(OtpDto.email, trackChanges: false);
+
+            if (_utilities.GetTimeDifference(Otps.timestamp))
+            {
+                if (GeneratedOtp.ToString().Equals(OtpDto.otp))
+                {
+                    otpMatched = true;
+                    return Ok("Otp matched");
+                    
+                }
+                return BadRequest("Otp Not Matched");
+            }
+            return BadRequest("Otp Expired");
+        }
+        [HttpPatch("changepassword")]
+        public IActionResult ChangePassword( ChangePasswordDto changePasswordDto)
+        {
+
+            if (otpMatched)
+            {
+                if (changePasswordDto.password.Equals(changePasswordDto.confirmPassword))
+                {
+                    //UPDATE THE PASSWORD HERE
+                    return Ok();
+                }
+            }
+            return BadRequest();
+            
         }
     }
 }
