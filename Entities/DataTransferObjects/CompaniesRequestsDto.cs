@@ -12,5 +12,7 @@ namespace Entities.DataTransferObjects
         public string WorkerType { get; set; }
         public string Location { get; set; }
         public string Vacancy { get; set; }
+        public string RequestState { get; set; }
+        public string CreatedOn { get; set; }
     }
 }

@@ -13,6 +13,7 @@ namespace Entities.DataTransferObjects
         public string WorkerMobile { get; set; }
         public string WorkerMail { get; set; }
         public string WorkerType { get; set; }
+        public string CreatedOn { get; set; }
         public string WorkerPass { get; set; }
     }
 }

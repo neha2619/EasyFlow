@@ -9,6 +9,7 @@ namespace Entities.Models
 {
     public class WorkerReq
     {
+        //table when admin requests any work to workers
         [Column("Id")]
         public Guid Id { get; set; }
         [ForeignKey(nameof(Worker))]
@@ -16,5 +17,7 @@ namespace Entities.Models
         public string WorkerType { get; set; }
         public string Location { get; set; }
         public string RequestStatus { get; set; }
+        public string CreatedOn { get; set; }
+
     }
 }

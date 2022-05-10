@@ -82,6 +82,7 @@ namespace Util
             {
                 return false;
             }
+            
             return STRING_PATTERN.IsMatch( str);
         }
 

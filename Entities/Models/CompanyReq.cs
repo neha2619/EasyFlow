@@ -16,5 +16,7 @@ namespace Entities.Models
         [ForeignKey(nameof(Worker))]
         public Guid WorkerId { get; set; }
         public string RequestStatus { get; set; }
+        public string CreatedOn { get; set; }
+
     }
 }

@@ -18,11 +18,12 @@ namespace Repository
         }
 
         public void CreateRequest(AdminCompany adminrequest) => Create(adminrequest);
-        public IEnumerable<AdminCompany> GetAllRequest(string workerType,bool trackChanges) =>
- FindAll(trackChanges)
- .OrderBy(c => c.WorkerType)
+        public IEnumerable<AdminCompany> GetAllRequest(string workerType, bool trackChanges) =>
+FindByCondition(c => c.WorkerType.Equals(workerType), trackChanges).OrderBy(c => c.WorkerType)
  .ToList();
-
+        public IEnumerable<AdminCompany> GetRequestsForWorkerTypeByCompanyId(Guid companyId, string workerType, bool trackChanges) => FindByCondition(c => c.CompanyId.Equals(companyId) && c.WorkerType.Equals(workerType), trackChanges).OrderBy(c => c.WorkerType).ToList(); 
+        public IEnumerable<AdminCompany> GetRequestsForWorkerTypeLocation(string location, string workerType, bool trackChanges) => FindByCondition(c => c.Location.Equals(location) && c.WorkerType.Equals(workerType), trackChanges).OrderBy(c => c.WorkerType).ToList();
+        public IEnumerable<AdminCompany>GetRequestsByCompanyId(Guid userId,bool trackChanges) =>FindByCondition(c =>c.CompanyId.Equals(userId)  ,trackChanges).OrderBy(c => c.WorkerType).ToList();
 
 
     }

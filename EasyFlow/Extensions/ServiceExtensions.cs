@@ -1,5 +1,7 @@
 ﻿using Contracts;
 using Entities;
+using Entities.DataTransferObjects;
+using Entities.Models;
 using LoggerService;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
@@ -30,6 +32,11 @@ namespace EasyFlow.Extensions
 
         public static void ConfigureValidationServices(this IServiceCollection services) => services.AddScoped<IGlobalValidationUtil, GlobalValidationUtil>();
         public static void ConfigureUtilityServices(this IServiceCollection services) => services.AddScoped<IUtil, Utilities>();
+        public static void ConfigureOTPDto(this IServiceCollection services) => services.AddScoped<OTPs>();
+        public static void ConfigureWorkerReqEntity(this IServiceCollection services) => services.AddScoped<WorkerReq>();
+        public static void ConfigureCompanyReqEntity(this IServiceCollection services) => services.AddScoped<CompanyReq>();
+        public static void ConfigureAdminCompanyEntity(this IServiceCollection services) => services.AddScoped<AdminCompany>();
+        public static void ConfigureDashBoardsDto(this IServiceCollection services) => services.AddScoped<DashBoardDto>();
         
         public static void ConfigureSqlContext(this IServiceCollection services,
 IConfiguration configuration) =>

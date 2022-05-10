@@ -19,13 +19,21 @@ namespace EasyFlow.Controllers
         private readonly ILoggerManager _logger;
         private readonly IMapper _mapper;
         private readonly IGlobalValidationUtil _validate;
+        private readonly IUtil _utilities;
+        private readonly OTPs _otp;
+        private static int GeneratedOtp = 0;
+        private static bool otpMatched = false;
+
         public CompaniesController(IRepositoryManager repository, ILoggerManager logger, IMapper
-            mapper, IGlobalValidationUtil validate)
+            mapper, IGlobalValidationUtil validate, IUtil utilities, OTPs otp)
         {
             _repository = repository;
             _logger = logger;
             _mapper = mapper;
             _validate = validate;
+            _utilities = utilities;
+            _otp = otp;
+
         }
         [HttpGet(Name ="companyById")]
         public IActionResult GetCompanies()
@@ -201,9 +209,9 @@ namespace EasyFlow.Controllers
                         if (Convert.ToInt64(companiesRequestsDto.Vacancy) > 0)
                         {
                             companiesRequestsDto.CompanyID = companyId;
+                            companiesRequestsDto.RequestState = "Request is Processing";
+                            companiesRequestsDto.CreatedOn = DateTime.Now.ToString();
                             var requestEntity = _mapper.Map<AdminCompany>(companiesRequestsDto);
-                            //_logger.LogInfo(requestEntity.Vacancy.ToString());
-                            //REMOVE THIS LINE
                             _repository.AdminCompany.CreateRequest(requestEntity);
                             _repository.Save();
                             var requesttoreturn = _mapper.Map<CompaniesRequestsDto>(requestEntity);
@@ -215,6 +223,48 @@ namespace EasyFlow.Controllers
             }
             return BadRequest(companiesRequestsDto);
         }
+        [HttpGet("checkrequeststatus")]
+        public IActionResult CheckRequestStatus(CheckRequestsDto checkRequestsDto)
+        {
+            if ( checkRequestsDto != null)
+            {
+                if (checkRequestsDto.WorkerType != "")
+                {
+                    var requests = _repository.AdminCompany.GetRequestsForWorkerTypeByCompanyId(checkRequestsDto.userID, checkRequestsDto.WorkerType, trackChanges: false);
+                    var reqs = requests.Where(c => c.Equals(checkRequestsDto.WorkerType)).ToList();
+                    var RequestsDto = requests.Select(c => new ReturnRequestStatusToCompanyDto
+                    {
+                        WorkerType = c.WorkerType,
+                        Location = c.Location,
+                        Vacancy = c.Vacancy,
+                        RequestState = c.RequestState,
+                        CreatedOn = c.CreatedOn
+                    }).ToList();
+
+                   
+                    return Ok(RequestsDto);
+                }
+                else
+                {
+                    if ( checkRequestsDto.WorkerType=="")
+                    {
+                        var requests = _repository.AdminCompany.GetRequestsForWorkerTypeByCompanyId(checkRequestsDto.userID,checkRequestsDto.WorkerType, trackChanges: false);
+                        var RequestsDto = requests.Select(c => new ReturnRequestStatusToCompanyDto
+                        {
+                            WorkerType = c.WorkerType,
+                            Location = c.Location,
+                            Vacancy = c.Vacancy,
+                            RequestState = c.RequestState,
+                            CreatedOn = c.CreatedOn
+                        }).ToList();
+
+                        _logger.LogInfo(RequestsDto.ToString());
+                        return Ok(RequestsDto);
+                    }
+                }
+            }
+            return BadRequest("CheckRequestDto is Null");
+        }
 
         [HttpPatch("{mobile}")]
         public IActionResult PartiallyUpdateCompany(string mobile,
@@ -225,7 +275,6 @@ namespace EasyFlow.Controllers
                 _logger.LogError("patchDoc object sent from client is null.");
                 return BadRequest("patchDoc object is null");
             }
-
             var companyEntity = _repository.company.GetCompanyFromMobile(mobile, trackChanges:
            true);
             if (companyEntity == null)
@@ -238,6 +287,77 @@ namespace EasyFlow.Controllers
             _mapper.Map(companyToPatch, companyEntity);
             _repository.Save();
             return NoContent();
+        }
+
+        [HttpGet("sendotp")]
+        public IActionResult SendOtp(OtpsDto OtpDto)
+        {
+            if (!_validate.IsEmailValid(OtpDto.email))
+            {
+                _logger.LogError("Email is not valid");
+                return BadRequest("Email is not Valid");
+            }
+            GeneratedOtp = _utilities.GenerateOtp();
+            try
+            {
+                string sub = "OTP FOR RESET PASSWORD";
+                string body = "Hello the OTP to reset your password is :\n" + GeneratedOtp.ToString() + "\n It is valid for 120 seconds";
+                _utilities.SendEmail(OtpDto.email, body, sub);
+                var otp = _mapper.Map<OTPs>(_otp);
+               
+                    _otp.recipientEmail = OtpDto.email;
+                    _otp.timestamp = DateTime.Now.ToString();
+
+                    _repository.oTPs.CreateOtpObject(_otp);
+                    _repository.Save();
+                
+              
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.ToString());
+                return BadRequest(e.Message);
+            }
+            return Ok();
+        }
+        
+        [HttpPost("verifyotp")]
+        public IActionResult VerifyOtp(OtpsDto OtpDto)
+        {
+            if (!_validate.IsEmailValid(OtpDto.email))
+            {
+                _logger.LogError("Email not Valid");
+                return BadRequest();
+            }
+            var Otps = _repository.oTPs.GetOTPTimestampFromEmail(OtpDto.email, trackChanges: false);
+
+            if (_utilities.GetTimeDifference(Otps.timestamp))
+            {
+                if (GeneratedOtp.ToString().Equals(OtpDto.otp))
+                {
+                    otpMatched = true;
+                    return Ok("Otp matched");
+
+                }
+                return BadRequest("Otp Not Matched");
+            }
+            return BadRequest("Otp Expired");
+        }
+
+        [HttpPatch("changepassword")]
+        public IActionResult ChangePassword(ChangePasswordDto changePasswordDto)
+        {
+
+            if (otpMatched)
+            {
+                if (changePasswordDto.password.Equals(changePasswordDto.confirmPassword))
+                {
+                    //UPDATE THE PASSWORD HERE
+                    return Ok();
+                }
+            }
+            return BadRequest();
+
         }
     }
 }

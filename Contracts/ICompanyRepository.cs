@@ -17,5 +17,10 @@ namespace Contracts
         company GetCompanyPasswordFromMobile(string CompanyMobile, bool trackChanges);
         void CreateCompany(company company);
         company GetCompanyFromMobile(string CompanyMobile, bool trackChanges);
+        int CountAllCompanies(bool trackChanges);
+
+        IEnumerable<company> GetCompaniesByCreatedOn(bool trackChanges);
+
+
     }
 }

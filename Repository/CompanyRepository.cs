@@ -43,5 +43,9 @@ namespace Repository
         public company GetCompanyFromMobile(string CompanyMobile, bool trackChanges) =>
  FindByCondition(c => c.CompanyMobile.Equals(CompanyMobile), trackChanges)
  .SingleOrDefault();
+
+        public int CountAllCompanies(bool trackChanges) =>
+FindAll(trackChanges).Count();
+        public IEnumerable<company> GetCompaniesByCreatedOn(bool trackChanges) => FindAll(trackChanges).OrderBy(c => c.CreatedOn).ToList();
     }
 }

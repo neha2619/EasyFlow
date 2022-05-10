@@ -42,6 +42,11 @@ namespace EasyFlow
             services.ConfigureValidationServices();
             services.AddAutoMapper(typeof(Startup));
             services.ConfigureUtilityServices();
+            services.ConfigureOTPDto();
+            services.ConfigureWorkerReqEntity();
+            services.ConfigureCompanyReqEntity();
+            services.ConfigureAdminCompanyEntity();
+            services.ConfigureDashBoardsDto();
             services.AddControllers(config =>
             {
                 config.RespectBrowserAcceptHeader = true;

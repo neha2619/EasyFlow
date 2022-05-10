@@ -23,21 +23,26 @@ namespace EasyFlow.Controllers
         private readonly IMapper _mapper;
         private readonly IGlobalValidationUtil _validate;
         private readonly IUtil _utilities;
+        private readonly CompanyReq _companyReq;
+        private readonly AdminCompany _adminCompany;
+        private readonly DashBoardDto _dashboardDto;
+        private readonly OTPs _otp;
         private static bool otpMatched = false;
-        OTPs oTPs;
 
 
-        private static int  GeneratedOtp = 0;
+        private static int GeneratedOtp = 0;
 
-        public AdminController(IRepositoryManager repository, ILoggerManager logger, IMapper mapper, IGlobalValidationUtil validate, IUtil utilities)
+        public AdminController(IRepositoryManager repository, ILoggerManager logger, IMapper mapper, IGlobalValidationUtil validate, IUtil utilities, OTPs otp, CompanyReq companyReq, AdminCompany adminCompany, DashBoardDto dashboardDto)
         {
             _repository = repository;
             _logger = logger;
             _mapper = mapper;
             _validate = validate;
             _utilities = utilities;
-            oTPs = new OTPs();
-
+            _otp = otp;
+            _companyReq = companyReq;
+            _adminCompany = adminCompany;
+            _dashboardDto = dashboardDto;
 
         }
         [HttpGet(Name = "AdminById")]
@@ -103,7 +108,7 @@ namespace EasyFlow.Controllers
                     {
                         if (adminLogin.Pass.Equals(Admin.Pass))
                         {
-                           
+
                             return Ok($"Login Successful");
                         }
                         return BadRequest("Password Incorrect");
@@ -130,6 +135,8 @@ namespace EasyFlow.Controllers
                         if (adminLogin.Pass.Equals(Admin.Pass))
                         {
                             return Ok($"Login Successful");
+                            //call here the notify functions
+
                         }
                         return BadRequest("Password Incorrect");
 
@@ -166,20 +173,51 @@ namespace EasyFlow.Controllers
             return NoContent();
         }
 
-        [HttpPost("postrequest/{type}")]
-        public IActionResult PostRequestsForWorker(string type)
+        [HttpPost("postrequest")]
+        public IActionResult PostRequestsForWorker(GetRequestDetailsFromCompanyDto getRequest)
         {
-
-            if (type != null && !(_validate.IsStringValid(type)))
+            int c = 0;
+            if (getRequest.workerType != "" && getRequest.location != "")
             {
-                var workersFound = _repository.AdminCompany.GetAllRequest(type, trackChanges:false);
-                var workersDto = _mapper.Map<IEnumerable<WorkerDto>>(workersFound);
-                foreach(WorkerDto worr in workersDto)
+                if (_validate.IsStringValid(getRequest.workerType))
                 {
-                    _logger.LogInfo(worr.Id.ToString());
-                }
-                return Ok(workersFound); 
 
+                    var workFound = _repository.AdminCompany.GetRequestsByCompanyId(getRequest.CompanyId, trackChanges: false);
+                    var workersFound = _repository.AdminWorker.GetAllRequestByWorkerType(getRequest.workerType, trackChanges: false);
+                    var workersDto = _mapper.Map<IEnumerable<AdminCompany>>(workFound);
+                    foreach (AdminWorker worker in workersFound)
+                    {
+                        if (worker.WorkerType.Equals(getRequest.workerType) && worker.Location.Equals(getRequest.location))
+                        {
+                            c++;
+                        }
+
+                    }
+                    DateTime mindateTime = DateTime.MaxValue;
+                    List<String> createdon = new List<string>();
+                    foreach (AdminWorker worker in workersFound)
+                    {
+                        if (worker.WorkerType.Equals(getRequest.workerType) && worker.Location.Equals(getRequest.location) && c == 1)
+                        {
+                            _companyReq.WorkerId = worker.WorkerId;
+                            _companyReq.CompanyId = getRequest.CompanyId;
+                            _companyReq.RequestStatus = "Pending";
+                            _companyReq.CreatedOn = DateTime.Now.ToString();
+                        }
+                        else
+                        {
+                            var we = _repository.AdminWorker.GetAllRequestByCreatedOn(trackChanges:false);
+                            if (we != null &&  createdon.Contains(we.CreatedOn))
+                            {
+                                _logger.LogInfo($" id {we.WorkerId} tme:{we.CreatedOn}");
+                                createdon.Add(we.CreatedOn);
+                            }
+                        }
+                    }
+                    return Ok(_companyReq);
+                }
+                _logger.LogInfo("Worker Type is not valid");
+                return BadRequest("WorkerType Not Valid");
             }
             _logger.LogError("Entered Request Details are Invalid");
             return BadRequest();
@@ -187,7 +225,7 @@ namespace EasyFlow.Controllers
         [HttpGet("sendotp")]
         public IActionResult SendOtp(OtpsDto OtpDto)
         {
-            
+
             if (!_validate.IsEmailValid(OtpDto.email))
             {
                 _logger.LogError("Email is not valid");
@@ -199,17 +237,18 @@ namespace EasyFlow.Controllers
                 string sub = "OTP FOR RESET PASSWORD";
                 string body = "Hello the OTP to reset your password is :\n" + GeneratedOtp.ToString() + "\n It is valid for 120 seconds";
                 _utilities.SendEmail(OtpDto.email, body, sub);
-                var otp = _mapper.Map<OTPs>(oTPs);
-                otp.recipientEmail = OtpDto.email;
-               otp.timestamp = DateTime.Now.ToString();
-                _logger.LogInfo(otp.timestamp);
+                var otp = _mapper.Map<OTPs>(_otp);
 
-               _repository.oTPs.CreateOtpObject(otp);
+                _otp.recipientEmail = OtpDto.email;
+                _otp.timestamp = DateTime.Now.ToString();
+
+                _repository.oTPs.CreateOtpObject(_otp);
                 _repository.Save();
+
             }
             catch (Exception e)
             {
-               _logger.LogError(e.ToString());
+                _logger.LogError(e.ToString());
                 return BadRequest(e.Message);
             }
             return Ok();
@@ -230,14 +269,13 @@ namespace EasyFlow.Controllers
                 {
                     otpMatched = true;
                     return Ok("Otp matched");
-                    
                 }
                 return BadRequest("Otp Not Matched");
             }
             return BadRequest("Otp Expired");
         }
         [HttpPatch("changepassword")]
-        public IActionResult ChangePassword( ChangePasswordDto changePasswordDto)
+        public IActionResult ChangePassword(ChangePasswordDto changePasswordDto)
         {
 
             if (otpMatched)
@@ -249,7 +287,34 @@ namespace EasyFlow.Controllers
                 }
             }
             return BadRequest();
-            
+        }
+
+        [HttpGet("dashboard")]
+        public IActionResult Dashboard()
+        {
+            int[] monthsForWorker = new int[11] {0,0,0,0,0,0,0,0,0,0,0};
+            int[] monthsForCompany = new int[11] {0,0,0,0,0,0,0,0,0,0,0};
+            _dashboardDto.totalworkers = _repository.Worker.CountAllWorkers(trackChanges: false) ;
+            _dashboardDto.totalcompany = _repository.company.CountAllCompanies(trackChanges: false) ;
+            _dashboardDto.worker = _repository.Worker.GetTopRatedWorker(trackChanges: false) ;
+            var workers = _repository.Worker.GetAllWorkers(trackChanges: false) ;
+           var companies=  _repository.company.GetCompaniesByCreatedOn(trackChanges: false) ;
+           foreach (var worker in workers)
+            {
+                int m = DateTime.Parse(worker.CreatedOn).Month;
+                monthsForWorker[m]++;
+            }
+           foreach (var company in companies)
+            {
+                int m = DateTime.Parse(company.CreatedOn).Month;
+                monthsForCompany[m]++;
+
+            }
+            _dashboardDto.CompanybyMonth = monthsForCompany;
+            _dashboardDto.workerbyMonth = monthsForWorker;
+
+
+            return Ok(_dashboardDto);
         }
     }
 }

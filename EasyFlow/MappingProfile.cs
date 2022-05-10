@@ -17,6 +17,8 @@ namespace EasyFlow
 
             CreateMap<Worker, WorkerDto>();
             CreateMap<WorkerDto,Worker>();
+            
+            
 
             CreateMap<Admin, AdminDto>();
             CreateMap<CompanyForCreationDto, company>();
