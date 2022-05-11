@@ -31,8 +31,9 @@ namespace Entities
         public DbSet<Admin> Admins { get; set; }
         public DbSet<AdminWorker> AdminWorkers { get; set; }
         public DbSet<AdminCompany> AdminCompanyies { get; set; }
-        public DbSet<AdminReq> AdminReq { get; set; }
+        public DbSet<CompanyReq> CompanyReq { get; set; }
         public DbSet<WorkerReq> WorkerReq { get; set; }
         public DbSet<PreviousWorker> PreviousWorker { get; set; }
+        public DbSet<OTPs> OTPs { get; set; }
     }
 }

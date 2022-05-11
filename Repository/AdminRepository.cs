@@ -33,5 +33,7 @@ FindByCondition(c => c.Mobile.Equals(AdminMobile), trackChanges)
         public Admin GetAdminFromMobile(string AdminMobile, bool trackChanges) =>
 FindByCondition(c => c.Mobile.Equals(AdminMobile), trackChanges)
 .SingleOrDefault();
+
+
     }
 }

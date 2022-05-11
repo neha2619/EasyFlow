@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace EasyFlow.Controllers
 {
@@ -17,11 +18,22 @@ namespace EasyFlow.Controllers
         private readonly IRepositoryManager _repository;
         private readonly ILoggerManager _logger;
         private readonly IMapper _mapper;
-        public WorkersController(IRepositoryManager repository,ILoggerManager logger, IMapper mapper)
+        private readonly IGlobalValidationUtil _validate;
+        private readonly IUtil _utilities;
+        private readonly OTPs _otp;
+
+        private static int GeneratedOtp = 0;
+        private static bool otpMatched = false;
+
+        public WorkersController(IRepositoryManager repository, ILoggerManager logger, IMapper mapper, IGlobalValidationUtil validate, IUtil utilities, OTPs otp)
         {
             _repository = repository;
             _logger = logger;
             _mapper = mapper;
+            _validate = validate;
+            _utilities = utilities;
+            _otp = otp;
+
         }
         [HttpGet(Name = "WorkerById")]
         public IActionResult GetWorkers()
@@ -33,13 +45,30 @@ namespace EasyFlow.Controllers
             return Ok(workersDto);
 
         }
-
         [HttpPost("register")]
-        public IActionResult RegisterWorker(WorkerForRegistrationDto worker)
+        public IActionResult RegisterWorker([FromBody] WorkerForRegistrationDto worker)
         {
           
            if (worker != null )
             {
+
+                if (!(_validate.IsEmailValid(worker.WorkerMail)))
+                {
+                    _logger.LogInfo("Email is invalid ");
+                    return BadRequest("Invalid Email");
+                }
+                if (!(_validate.IsMobileValid(worker.WorkerMobile)))
+                {
+                    _logger.LogError("Worker Mobile Number is Not Valid");
+                    return BadRequest("Invalid Mobile");
+                }
+                if (!(_validate.IsPasswdStrong(worker.WorkerPass)))
+                {
+
+                    _logger.LogError("Password is too weak");
+                    return BadRequest("Password is too weak");
+                }
+                worker.CreatedOn = DateTime.Now.ToString();
                 var workerEntity = _mapper.Map<Worker>(worker);
                 _repository.Worker.Create(workerEntity);
                 _repository.Save();
@@ -60,8 +89,15 @@ namespace EasyFlow.Controllers
             }
             if (workerLogin.Mobile != null)
             {
+                if (!(_validate.IsMobileValid(workerLogin.Mobile)))
+                {
+                    _logger.LogError("Worker Mobile Number is Not Valid");
+                    return BadRequest("Invalid Mobile");
+                }
                 if (workerLogin.Pass != null)
                 {
+                   
+
                     var Worker = _repository.Worker.GetWorkerPasswordFromMobile(workerLogin.Mobile, trackChanges: false);
 
                     if (Worker != null)
@@ -127,6 +163,125 @@ namespace EasyFlow.Controllers
             _repository.Save();
             return NoContent();
         }
+        
+        [HttpPost("apply/{workerId}")]
+        public IActionResult RequestForJob(Guid workerId , WorkerRequestToCompanyDto requestDto)
+        {
+            
+            if (workerId.ToString() !=null && (workerId.ToString() != ""))
+            {
+                var worker = _repository.Worker.GetWorkerFromId(workerId ,trackChanges: false);
+                if (worker != null)
+                {
+                    if (!(_validate.IsStringValid(requestDto.WorkerType)) && !(_validate.IsStringValid(requestDto.Location)))
+                    {
+                        _logger.LogError("Entered Request Details are Invalid");
+                        return BadRequest();
+                    }
+                    requestDto.WorkerId = workerId;
+                    requestDto.requestState = "Request is Processing";
+                    requestDto.CreatedOn = DateTime.Now.ToString();
+                    var workerRequest = _mapper.Map<AdminWorker>(requestDto);
+                    _repository.AdminWorker.CreateRequest(workerRequest);
+                    var requestToReturn = _mapper.Map<WorkerRequestToCompanyDto>(workerRequest);
+                    _repository.Save();
+                    return Ok(requestToReturn);
+                }
+                return NotFound();
+            }
+            return BadRequest();
+        }
+        [HttpGet("checkrequeststatus")]
+        public IActionResult CheckRequestStatus(CheckRequestsDto checkRequestsDto)
+        {
+            if (checkRequestsDto != null)
+            {
+                if (checkRequestsDto.WorkerType != "")
+                {
+                    var requests = _repository.AdminWorker.GetRequestsByWorkerId(checkRequestsDto.userID,trackChanges: false);
+                        var reqs = requests.Where(c => c.Equals(checkRequestsDto.WorkerType)).ToList();
+                    var RequestsDto = requests.Select(c => new ReturnRequestStatusToWorkerDto
+                    {
+                        WorkerType = c.WorkerType,
+                        Location = c.Location,
+                        RequestState = c.RequestState,
+                        CreatedOn = c.CreatedOn
+                    }).ToList();
+                    return Ok(RequestsDto);
+                }
+                
+            }
+            return NotFound();
 
+        }
+                [HttpGet("sendotp")]
+        public IActionResult SendOtp(OtpsDto OtpDto)
+        {
+            if (!_validate.IsEmailValid(OtpDto.email))
+            {
+                _logger.LogError("Email is not valid");
+                return BadRequest("Email is not Valid");
+            }
+            GeneratedOtp = _utilities.GenerateOtp();
+            try
+            {
+                string sub = "OTP FOR RESET PASSWORD";
+                string body = "Hello the OTP to reset your password is :\n" + GeneratedOtp.ToString() + "\n It is valid for 120 seconds";
+                _utilities.SendEmail(OtpDto.email, body, sub);
+
+                var otp = _mapper.Map<OTPs>(_otp);
+
+                _otp.recipientEmail = OtpDto.email;
+                _otp.timestamp = DateTime.Now.ToString();
+
+                _repository.oTPs.CreateOtpObject(_otp);
+                _repository.Save();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.ToString());
+                return BadRequest(e.Message);
+            }
+            return Ok();
+        }
+        
+        [HttpPost("verifyotp")]
+        public IActionResult VerifyOtp(OtpsDto OtpDto)
+        {
+            if (!_validate.IsEmailValid(OtpDto.email))
+            {
+                _logger.LogError("Email not Valid");
+                return BadRequest();
+            }
+            var Otps = _repository.oTPs.GetOTPTimestampFromEmail(OtpDto.email, trackChanges: false);
+
+            if (_utilities.GetTimeDifference(Otps.timestamp))
+            {
+                if (GeneratedOtp.ToString().Equals(OtpDto.otp))
+                {
+                    otpMatched = true;
+                    return Ok("Otp matched");
+
+                }
+                return BadRequest("Otp Not Matched");
+            }
+            return BadRequest("Otp Expired");
+        }
+
+        [HttpPatch("changepassword")]
+        public IActionResult ChangePassword(ChangePasswordDto changePasswordDto)
+        {
+
+            if (otpMatched)
+            {
+                if (changePasswordDto.password.Equals(changePasswordDto.confirmPassword))
+                {
+                    //UPDATE THE PASSWORD HERE
+                    return Ok();
+                }
+            }
+            return BadRequest();
+
+        }
     }
 }

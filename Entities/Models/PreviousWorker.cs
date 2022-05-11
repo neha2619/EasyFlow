@@ -9,12 +9,12 @@ namespace Entities.Models
 {
     public class PreviousWorker
     {
+        //has data of hired worker and hiring company
         [Column("Id")]
         public Guid Id { get; set; }
         [ForeignKey(nameof(company))]
         public Guid CompanyId { get; set; }
         [ForeignKey(nameof(Worker))]
         public Guid WorkerId { get; set; }
-        public string WorkerState { get; set; }
     }
 }

@@ -21,16 +21,29 @@ namespace Repository
  .OrderBy(c => c.WorkerName)
  .ToList();
 
+        public int CountAllWorkers(bool trackChanges) =>
+FindAll(trackChanges).Count();
+
         public Worker GetWorkerPasswordFromMobile(string WorkerMobile, bool trackChanges) =>
  FindByCondition(c => c.WorkerMobile.Equals(WorkerMobile), trackChanges)
  .SingleOrDefault();
+        public IEnumerable<Worker> GetWorkerFromType(string WorkerType, bool trackChanges) =>
+ FindByCondition(c => c.WorkerType.Equals(WorkerType), trackChanges).OrderBy(c=>c.WorkerType).ToList();
 
         public Worker GetWorkerPasswordFromEmail(string WorkerEmail, bool trackChanges) =>
  FindByCondition(c => c.WorkerMail.Equals(WorkerEmail), trackChanges)
  .SingleOrDefault();
+
         public Worker GetWorkerFromMobile(string WorkerMobile, bool trackChanges) =>
  FindByCondition(c => c.WorkerMobile.Equals(WorkerMobile), trackChanges)
  .SingleOrDefault();
+
+        public Worker GetWorkerFromId(Guid WorkerId, bool trackChanges)=>
+            FindByCondition(c =>c.Id.Equals(WorkerId), trackChanges).SingleOrDefault();
+
+        public IEnumerable<Worker> GetTopRatedWorker(bool trackChanges)=>FindAll(trackChanges).OrderByDescending(c=>c.Ratings).ToList();
+
+        public IEnumerable<Worker>GetWorkersByCreatedOn(bool trackChanges) =>FindAll(trackChanges).OrderBy(c=>c.CreatedOn).ToList();
 
         public void AddWorker(Worker  worker) => Create(worker);
     }

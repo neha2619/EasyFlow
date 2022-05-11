@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EasyFlow.Migrations
 {
     [DbContext(typeof(RepositoryContext))]
-    [Migration("20220425111147_DBCreation")]
-    partial class DBCreation
+    [Migration("20220509135455_TablesUpdatedCreatedON")]
+    partial class TablesUpdatedCreatedON
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -65,7 +65,13 @@ namespace EasyFlow.Migrations
                     b.Property<Guid>("CompanyId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("CreatedOn")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Location")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RequestState")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Vacancy")
@@ -106,7 +112,13 @@ namespace EasyFlow.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("Id");
 
+                    b.Property<string>("CreatedOn")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Location")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RequestState")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("WorkerId")
@@ -131,6 +143,67 @@ namespace EasyFlow.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Entities.Models.CompanyReq", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("Id");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CreatedOn")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RequestStatus")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("WorkerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("CompanyReq");
+                });
+
+            modelBuilder.Entity("Entities.Models.OTPs", b =>
+                {
+                    b.Property<Guid>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("Id");
+
+                    b.Property<string>("recipientEmail")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("timestamp")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("id");
+
+                    b.ToTable("OTPs");
+                });
+
+            modelBuilder.Entity("Entities.Models.PreviousWorker", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("Id");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("WorkerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PreviousWorker");
+                });
+
             modelBuilder.Entity("Entities.Models.Worker", b =>
                 {
                     b.Property<Guid>("Id")
@@ -147,6 +220,9 @@ namespace EasyFlow.Migrations
                     b.Property<string>("LocationPreference")
                         .HasMaxLength(180)
                         .HasColumnType("nvarchar(180)");
+
+                    b.Property<int>("Ratings")
+                        .HasColumnType("int");
 
                     b.Property<string>("UpdatedOn")
                         .HasColumnType("nvarchar(max)");
@@ -191,6 +267,7 @@ namespace EasyFlow.Migrations
                             CreatedOn = "24.04.2022",
                             KYCStatus = "Yes",
                             LocationPreference = "Alambag,charbag",
+                            Ratings = 0,
                             UpdatedOn = "12.05.2022",
                             WorkerAadhar = "123456789012",
                             WorkerMail = "Samraiden@gmail.com",
@@ -205,6 +282,7 @@ namespace EasyFlow.Migrations
                             CreatedOn = "21.04.2022",
                             KYCStatus = "No",
                             LocationPreference = "Hazaratganj,Aashiyana",
+                            Ratings = 0,
                             UpdatedOn = "11.05.2022",
                             WorkerAadhar = "120000789012",
                             WorkerMail = "Ronraiden@gmail.com",
@@ -213,6 +291,33 @@ namespace EasyFlow.Migrations
                             WorkerPass = "hjhfdjsdsdgjgg",
                             WorkerType = "Carpenter"
                         });
+                });
+
+            modelBuilder.Entity("Entities.Models.WorkerReq", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("Id");
+
+                    b.Property<string>("CreatedOn")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Location")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RequestStatus")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("WorkerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("WorkerType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("WorkerReq");
                 });
 
             modelBuilder.Entity("Entities.Models.company", b =>

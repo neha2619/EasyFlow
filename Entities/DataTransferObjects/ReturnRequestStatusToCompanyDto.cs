@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace Entities.DataTransferObjects
 {
-    public class CompaniesRequestsDto
+    public class ReturnRequestStatusToCompanyDto
     {
-        public Guid CompanyID {get ;set;}
         public string WorkerType { get; set; }
         public string Location { get; set; }
         public string Vacancy { get; set; }
