@@ -21,7 +21,12 @@ namespace Repository
         public IEnumerable<AdminWorker> GetAllRequestByWorkerType(string workerType, bool trackChanges) =>
 FindByCondition(c => c.WorkerType.Equals(workerType), trackChanges).OrderBy(c => c.WorkerType)
  .ToList();
-        public AdminWorker GetAllRequestByCreatedOn( bool trackChanges) =>
-FindAll(trackChanges).OrderBy(c => c.CreatedOn).First();
+        public IEnumerable<AdminWorker> GetAllRequestByCreatedOn( string workerType,bool trackChanges) =>
+FindByCondition(c =>c.WorkerType.Equals(workerType),trackChanges).OrderBy(c => c.CreatedOn).ToList();
+
+        public AdminWorker GetWorkerByTimestamp(string timestamp,bool trackChanges) =>FindByCondition(x=>x.CreatedOn.Equals(timestamp),trackChanges).FirstOrDefault();
+
+        public void DeleteWorker(AdminWorker adminWorker) =>Delete(adminWorker);
+
     }
 }

@@ -17,6 +17,7 @@ namespace Repository
         private IAdminWorkerRepository _adminworkerRepository;
         private IAdminRepository _adminRepository;
         private IOTPsRepository _otPsRepository;
+        private ICompanyReqRepository _companyReq;
         public RepositoryManager(RepositoryContext repositoryContext)
         {
             _repositoryContext = repositoryContext;
@@ -74,6 +75,15 @@ namespace Repository
                 if (_otPsRepository == null)
                     _otPsRepository = new OTPsRepository(_repositoryContext);
                 return _otPsRepository;
+            }
+        } 
+        public ICompanyReqRepository CompanyReq
+        {
+            get
+            {
+                if (_companyReq == null)
+                    _companyReq = new CompanyReqRepository(_repositoryContext);
+                return _companyReq;
             }
         }
         public void Save() => _repositoryContext.SaveChanges();

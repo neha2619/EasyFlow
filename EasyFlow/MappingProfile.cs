@@ -39,8 +39,13 @@ namespace EasyFlow
 
             CreateMap<AdminUpdateDto, Admin>(); 
             CreateMap<AdminUpdateDto, Admin>().ReverseMap();
-
             CreateMap<OTPs,OTPs>();
+
+           CreateMap<CompanyReq, CompanyReq>();
+
+
+            //CreateMap<SuggestedWorkersForCompany,CompanyReq>();
+            CreateMap<CompanyReq,SuggestedWorkersForCompany>();
 
             CreateMap<Admin,ChangePasswordDto>();
 

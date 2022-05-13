@@ -12,6 +12,8 @@ namespace Contracts
         void CreateRequest(AdminWorker workersRequest);
         IEnumerable<AdminWorker> GetRequestsByWorkerId(Guid workerId, bool trackChanges);
         IEnumerable<AdminWorker> GetAllRequestByWorkerType(string workerType, bool trackChanges);
-        AdminWorker GetAllRequestByCreatedOn(   bool trackChanges);
+        IEnumerable<AdminWorker> GetAllRequestByCreatedOn( string workerType,  bool trackChanges);
+        AdminWorker GetWorkerByTimestamp(string timestamp, bool trackChanges);
+        void DeleteWorker(AdminWorker adminWorker) ;
     }
 }

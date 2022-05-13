@@ -177,48 +177,100 @@ namespace EasyFlow.Controllers
         public IActionResult PostRequestsForWorker(GetRequestDetailsFromCompanyDto getRequest)
         {
             int c = 0;
+            DateTime mindateTime = DateTime.MaxValue;
+            List<String> createdon = new List<string>();
+            if (getRequest.CompanyId.ToString() !="") 
+            { 
             if (getRequest.workerType != "" && getRequest.location != "")
             {
-                if (_validate.IsStringValid(getRequest.workerType))
+                if (_validate.IsStringValid(getRequest.workerType) && _validate.IsNumberValid(getRequest.vacancy))
                 {
 
                     var workFound = _repository.AdminCompany.GetRequestsByCompanyId(getRequest.CompanyId, trackChanges: false);
                     var workersFound = _repository.AdminWorker.GetAllRequestByWorkerType(getRequest.workerType, trackChanges: false);
-                    var workersDto = _mapper.Map<IEnumerable<AdminCompany>>(workFound);
+
                     foreach (AdminWorker worker in workersFound)
                     {
+                            //getting the match count
                         if (worker.WorkerType.Equals(getRequest.workerType) && worker.Location.Equals(getRequest.location))
                         {
                             c++;
                         }
 
                     }
-                    DateTime mindateTime = DateTime.MaxValue;
-                    List<String> createdon = new List<string>();
+                   
                     foreach (AdminWorker worker in workersFound)
                     {
+                            //if only one match  is found
                         if (worker.WorkerType.Equals(getRequest.workerType) && worker.Location.Equals(getRequest.location) && c == 1)
                         {
                             _companyReq.WorkerId = worker.WorkerId;
                             _companyReq.CompanyId = getRequest.CompanyId;
                             _companyReq.RequestStatus = "Pending";
                             _companyReq.CreatedOn = DateTime.Now.ToString();
+                            _repository.CompanyReq.CreateCompanyRequest(_companyReq);
+                            _repository.Save();
                         }
                         else
                         {
-                            var we = _repository.AdminWorker.GetAllRequestByCreatedOn(trackChanges:false);
-                            if (we != null &&  createdon.Contains(we.CreatedOn))
+                                //block to find the worker's who requested first
+                            var w = _repository.AdminWorker.GetAllRequestByCreatedOn(getRequest.workerType, trackChanges: false);
+                            foreach (var we in w)
                             {
-                                _logger.LogInfo($" id {we.WorkerId} tme:{we.CreatedOn}");
-                                createdon.Add(we.CreatedOn);
+                                if (we != null && createdon.Contains(we.CreatedOn))
+                                {
+                                        continue;
+                                }
+                                else
+                                {
+                                    createdon.Add(we.CreatedOn);
+                                }
                             }
                         }
                     }
-                    return Ok(_companyReq);
+                    int wcount = createdon.Count;
+                    int max = 0;
+                    if (wcount > Convert.ToInt32(getRequest.vacancy))
+                    {
+                            //searching if workers found are less than vacancy
+                        max = Convert.ToInt32(getRequest.vacancy);
+                    }
+                    else
+                    {
+                            //searching if workers found are greater than vacancy
+                        max = wcount;
+                    }
+                    for (int i = 0; i < max; i++)
+                    {
+
+                        var workertosend = _repository.AdminWorker.GetWorkerByTimestamp(createdon[i], trackChanges: false);
+
+                        if (workertosend != null)
+                        {
+                            _companyReq.WorkerId = workertosend.WorkerId;
+                            _companyReq.RequestStatus = "Waiting For Response";
+                            _companyReq.CompanyId = getRequest.CompanyId;
+                            _companyReq.CreatedOn = DateTime.Now.ToString();
+                            var companyreq = _mapper.Map<CompanyReq>(_companyReq);
+                            _repository.CompanyReq.CreateCompanyRequest(companyreq);
+                            _repository.Save();
+                            var workerToDelete = _repository.AdminWorker.GetWorkerByTimestamp(createdon[i], trackChanges: true);
+                            _repository.AdminWorker.DeleteWorker(workerToDelete);
+                        }
+                    }
+
+
+                    // {UPDATE THE LEFT OFF VACANCY IN THAT PARTICULAR REQUEST OF THE COMPANY... HERE}
+
+
+                    var companyEntity = _repository.CompanyReq.GetAllSuggestedWorkers(getRequest.CompanyId, trackChanges: false);
+                    var companyToReturn = _mapper.Map<IEnumerable<SuggestedWorkersForCompany>>(companyEntity);
+                    return Ok(companyEntity);
                 }
                 _logger.LogInfo("Worker Type is not valid");
                 return BadRequest("WorkerType Not Valid");
             }
+        }
             _logger.LogError("Entered Request Details are Invalid");
             return BadRequest();
         }
@@ -274,17 +326,21 @@ namespace EasyFlow.Controllers
             }
             return BadRequest("Otp Expired");
         }
-        [HttpPatch("changepassword")]
-        public IActionResult ChangePassword(ChangePasswordDto changePasswordDto)
+        [HttpPatch("changepassword/{recipientMail}")]
+        public IActionResult ChangePassword(string recipientMail, [FromBody] JsonPatchDocument<ChangePasswordDto> patchDoc)
         {
 
             if (otpMatched)
             {
-                if (changePasswordDto.password.Equals(changePasswordDto.confirmPassword))
-                {
-                    //UPDATE THE PASSWORD HERE
-                    return Ok();
-                }
+                var adminEntity = _repository.Admin.GetAdminPasswordFromEmail(recipientMail, trackChanges: false);
+                //UPDATE THE PASSWORD HERE
+                var adminToPatch = _mapper.Map<ChangePasswordDto>(adminEntity);
+                patchDoc.ApplyTo(adminToPatch);
+                _mapper.Map(adminToPatch, adminEntity);
+                _repository.Save();
+                //return NoContent();
+                return Ok();
+
             }
             return BadRequest();
         }
@@ -292,19 +348,19 @@ namespace EasyFlow.Controllers
         [HttpGet("dashboard")]
         public IActionResult Dashboard()
         {
-            int[] monthsForWorker = new int[11] {0,0,0,0,0,0,0,0,0,0,0};
-            int[] monthsForCompany = new int[11] {0,0,0,0,0,0,0,0,0,0,0};
-            _dashboardDto.totalworkers = _repository.Worker.CountAllWorkers(trackChanges: false) ;
-            _dashboardDto.totalcompany = _repository.company.CountAllCompanies(trackChanges: false) ;
-            _dashboardDto.worker = _repository.Worker.GetTopRatedWorker(trackChanges: false) ;
-            var workers = _repository.Worker.GetAllWorkers(trackChanges: false) ;
-           var companies=  _repository.company.GetCompaniesByCreatedOn(trackChanges: false) ;
-           foreach (var worker in workers)
+            int[] monthsForWorker = new int[11] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+            int[] monthsForCompany = new int[11] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+            _dashboardDto.totalworkers = _repository.Worker.CountAllWorkers(trackChanges: false);
+            _dashboardDto.totalcompany = _repository.company.CountAllCompanies(trackChanges: false);
+            _dashboardDto.worker = _repository.Worker.GetTopRatedWorker(trackChanges: false);
+            var workers = _repository.Worker.GetAllWorkers(trackChanges: false);
+            var companies = _repository.company.GetCompaniesByCreatedOn(trackChanges: false);
+            foreach (var worker in workers)
             {
                 int m = DateTime.Parse(worker.CreatedOn).Month;
                 monthsForWorker[m]++;
             }
-           foreach (var company in companies)
+            foreach (var company in companies)
             {
                 int m = DateTime.Parse(company.CreatedOn).Month;
                 monthsForCompany[m]++;

@@ -18,6 +18,8 @@ namespace Repository
         }
 
         public void CreateRequest(AdminCompany adminrequest) => Create(adminrequest);
+        public void DeleteRequest(AdminCompany companiesRequest) => Delete(companiesRequest);
+
         public IEnumerable<AdminCompany> GetAllRequest(string workerType, bool trackChanges) =>
 FindByCondition(c => c.WorkerType.Equals(workerType), trackChanges).OrderBy(c => c.WorkerType)
  .ToList();

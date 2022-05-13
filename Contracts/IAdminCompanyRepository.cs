@@ -10,6 +10,8 @@ namespace Contracts
     public interface IAdminCompanyRepository
     {
        void CreateRequest(AdminCompany companiesRequest);
+        void DeleteRequest(AdminCompany companiesRequest);
+
         IEnumerable<AdminCompany> GetAllRequest(string workerType,bool trackChanges);
         IEnumerable<AdminCompany> GetRequestsByCompanyId(Guid companyId, bool trackChanges);
         IEnumerable<AdminCompany> GetRequestsForWorkerTypeByCompanyId(Guid companyId, string WorkerType, bool trackChanges);
