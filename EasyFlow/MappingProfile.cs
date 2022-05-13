@@ -48,6 +48,8 @@ namespace EasyFlow
             CreateMap<CompanyReq,SuggestedWorkersForCompany>();
 
             CreateMap<Admin,ChangePasswordDto>();
+            CreateMap<ChangePasswordDto, Admin>().ReverseMap();
+
 
         }
     }

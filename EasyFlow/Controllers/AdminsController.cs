@@ -329,13 +329,14 @@ namespace EasyFlow.Controllers
         [HttpPatch("changepassword/{recipientMail}")]
         public IActionResult ChangePassword(string recipientMail, [FromBody] JsonPatchDocument<ChangePasswordDto> patchDoc)
         {
-
             if (otpMatched)
             {
                 var adminEntity = _repository.Admin.GetAdminPasswordFromEmail(recipientMail, trackChanges: false);
                 //UPDATE THE PASSWORD HERE
+
                 var adminToPatch = _mapper.Map<ChangePasswordDto>(adminEntity);
                 patchDoc.ApplyTo(adminToPatch);
+
                 _mapper.Map(adminToPatch, adminEntity);
                 _repository.Save();
                 //return NoContent();
