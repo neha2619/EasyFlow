@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Entities.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,5 +12,7 @@ namespace Contracts
         int GenerateOtp();
         void SendEmail( string to, string msgbody, string msgsub);
         bool GetTimeDifference(string timestamp);
+        bool NotifyForKYC(string KYCstatus);
+        bool CheckForFirstLogin(Guid id);
     }
 }

@@ -21,11 +21,15 @@ namespace EasyFlow.Controllers
         private readonly IGlobalValidationUtil _validate;
         private readonly IUtil _utilities;
         private readonly OTPs _otp;
+        private readonly Timestamps _timestamps;
 
         private static int GeneratedOtp = 0;
+        private static int count = 0;
         private static bool otpMatched = false;
+        private static DateTime lastLoginTime = DateTime.MinValue;
 
-        public WorkersController(IRepositoryManager repository, ILoggerManager logger, IMapper mapper, IGlobalValidationUtil validate, IUtil utilities, OTPs otp)
+
+        public WorkersController(IRepositoryManager repository, ILoggerManager logger, IMapper mapper, IGlobalValidationUtil validate, IUtil utilities, OTPs otp, Timestamps timestamps)
         {
             _repository = repository;
             _logger = logger;
@@ -33,6 +37,7 @@ namespace EasyFlow.Controllers
             _validate = validate;
             _utilities = utilities;
             _otp = otp;
+            _timestamps = timestamps;
 
         }
         [HttpGet(Name = "WorkerById")]
@@ -83,6 +88,7 @@ namespace EasyFlow.Controllers
         [HttpGet("login")]
         public IActionResult LoginWorker([FromBody]LoginDto workerLogin)
         {
+            bool isFirstLogin;
             if (workerLogin.Email != null && workerLogin.Mobile != null && workerLogin.Pass != null)
             {
                 return StatusCode(405, "Now Allowed");
@@ -104,7 +110,23 @@ namespace EasyFlow.Controllers
                     {
                         if (workerLogin.Pass.Equals(Worker.WorkerPass))
                         {
-                            return Ok($"Login Successful");
+                            isFirstLogin = _utilities.CheckForFirstLogin(Worker.Id);
+                            if (isFirstLogin)
+                            {
+                                _timestamps.RecipientID = Worker.Id;
+                                _timestamps.TimeStamp = lastLoginTime.ToString();
+                                _repository.Timestamps.InsertTimestamp(_timestamps);
+                                _repository.Save();
+                            }
+                            var x = CheckNotifications(Worker.Id);
+                            lastLoginTime = DateTime.Now;
+                            _timestamps.id = new Guid();
+                            _timestamps.RecipientID = Worker.Id;
+                            _timestamps.TimeStamp = lastLoginTime.ToString();
+                            _repository.Timestamps.InsertTimestamp(_timestamps);
+                            _repository.Save();
+                            return x;
+
                         }
                         return BadRequest("Password Incorrect");
 
@@ -127,7 +149,23 @@ namespace EasyFlow.Controllers
                     {
                         if (workerLogin.Pass.Equals(Worker.WorkerPass))
                         {
-                            return Ok($"Login Successful");
+                            isFirstLogin = _utilities.CheckForFirstLogin(Worker.Id);
+                            if (isFirstLogin)
+                            {
+                                _timestamps.RecipientID = Worker.Id;
+                                _timestamps.TimeStamp = lastLoginTime.ToString();
+                                _repository.Timestamps.InsertTimestamp(_timestamps);
+                                _repository.Save();
+                            }
+                            var x = CheckNotifications(Worker.Id);
+                            lastLoginTime = DateTime.Now;
+                            _timestamps.id = new Guid();
+                            _timestamps.RecipientID = Worker.Id;
+                            _timestamps.TimeStamp = lastLoginTime.ToString();
+                            _repository.Timestamps.InsertTimestamp(_timestamps);
+                            _repository.Save();
+                            return x;
+
                         }
                         return BadRequest("Password Incorrect");
 
@@ -276,12 +314,56 @@ namespace EasyFlow.Controllers
             {
                 if (changePasswordDto.password.Equals(changePasswordDto.confirmPassword))
                 {
-                    //UPDATE THE PASSWORD HERE
-                    return Ok();
+                    if (!(_validate.IsPasswdStrong(changePasswordDto.confirmPassword)))
+                    {
+
+                        _logger.LogError("Password is too weak");
+                        return BadRequest("Password is too weak");
+                    }
+                    var workerProfile = _repository.Worker.GetWorkerPasswordFromEmail(changePasswordDto.recipientMail,trackChanges: false);
+                    workerProfile.WorkerPass = changePasswordDto.confirmPassword;
+                    workerProfile.UpdatedOn = DateTime.Now.ToString();
+                    _repository.Worker.Update(workerProfile);
+                    var workerToReturn=_mapper.Map<WorkerDto>(workerProfile);
+                    _repository.Save();
+                    return Ok(workerToReturn);
                 }
             }
             return BadRequest();
 
+        }
+        [HttpGet("Notifications")]
+        public IActionResult CheckNotifications(Guid id)
+        {
+            var requests = _repository.CompanyReq.GetAllSuggestedCompany(id, trackChanges: false);
+            var loginTimestamps = _repository.Timestamps.GetLastLoginTimeById(id, trackchanges: false).Reverse();
+
+            lastLoginTime = DateTime.Parse(loginTimestamps.ElementAt(0).TimeStamp);
+            List<CompanyReq> LatestReq = new List<CompanyReq>();
+            foreach (var request in requests)
+            {
+                if (DateTime.Parse(request.CreatedOn) > lastLoginTime)
+                {
+                    count++;
+                    LatestReq.Add(request);
+                }
+                else
+                {
+                    continue;
+                }
+            }
+            var x = LatestReq.ToArray();
+
+            if (LatestReq.Count > 0)
+            {
+                for (int i = 0; i < LatestReq.Count; i++)
+                {
+                    _logger.LogInfo(LatestReq[i].CreatedOn);
+                    var newRequests = x[i];
+                }
+                return Ok(LatestReq);
+            }
+            return NoContent();
         }
     }
 }

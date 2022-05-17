@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EasyFlow.Migrations
 {
     [DbContext(typeof(RepositoryContext))]
-    [Migration("20220509135455_TablesUpdatedCreatedON")]
-    partial class TablesUpdatedCreatedON
+    [Migration("20220516062839_AddedTimestampTable")]
+    partial class AddedTimestampTable
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -202,6 +202,23 @@ namespace EasyFlow.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("PreviousWorker");
+                });
+
+            modelBuilder.Entity("Entities.Models.Timestamps", b =>
+                {
+                    b.Property<Guid>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("RecipientID")
+                        .HasColumnType(ToString());
+
+                    b.Property<string>("TimeStamp")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("id");
+
+                    b.ToTable("Timestamps");
                 });
 
             modelBuilder.Entity("Entities.Models.Worker", b =>

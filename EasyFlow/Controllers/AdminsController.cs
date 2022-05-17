@@ -27,12 +27,13 @@ namespace EasyFlow.Controllers
         private readonly AdminCompany _adminCompany;
         private readonly DashBoardDto _dashboardDto;
         private readonly OTPs _otp;
+        private readonly AdminUpdateDto _adminUpdate;
         private static bool otpMatched = false;
 
 
         private static int GeneratedOtp = 0;
 
-        public AdminController(IRepositoryManager repository, ILoggerManager logger, IMapper mapper, IGlobalValidationUtil validate, IUtil utilities, OTPs otp, CompanyReq companyReq, AdminCompany adminCompany, DashBoardDto dashboardDto)
+        public AdminController(IRepositoryManager repository, ILoggerManager logger, IMapper mapper, IGlobalValidationUtil validate, IUtil utilities, OTPs otp, CompanyReq companyReq, AdminCompany adminCompany, DashBoardDto dashboardDto,AdminUpdateDto adminUpdate)
         {
             _repository = repository;
             _logger = logger;
@@ -43,6 +44,7 @@ namespace EasyFlow.Controllers
             _companyReq = companyReq;
             _adminCompany = adminCompany;
             _dashboardDto = dashboardDto;
+            _adminUpdate = adminUpdate;
 
         }
         [HttpGet(Name = "AdminById")]
@@ -210,6 +212,7 @@ namespace EasyFlow.Controllers
                             _companyReq.CreatedOn = DateTime.Now.ToString();
                             _repository.CompanyReq.CreateCompanyRequest(_companyReq);
                             _repository.Save();
+                            //update the VACANCY HERE
                         }
                         else
                         {
@@ -259,8 +262,7 @@ namespace EasyFlow.Controllers
                         }
                     }
 
-
-                    // {UPDATE THE LEFT OFF VACANCY IN THAT PARTICULAR REQUEST OF THE COMPANY... HERE}
+                    // {create a new ADMIN COMPANY OBJECT WITH  THE LEFT OFF VACANCY IN THAT PARTICULAR REQUEST OF THE COMPANY... HERE}
 
 
                     var companyEntity = _repository.CompanyReq.GetAllSuggestedWorkers(getRequest.CompanyId, trackChanges: false);
@@ -326,21 +328,14 @@ namespace EasyFlow.Controllers
             }
             return BadRequest("Otp Expired");
         }
-        [HttpPatch("changepassword/{recipientMail}")]
-        public IActionResult ChangePassword(string recipientMail, [FromBody] JsonPatchDocument<ChangePasswordDto> patchDoc)
+        [HttpGet("changepassword")]
+        public IActionResult ChangePassword( [FromBody] ChangePasswordDto changePasswordDto)
         {
             if (otpMatched)
             {
-                var adminEntity = _repository.Admin.GetAdminPasswordFromEmail(recipientMail, trackChanges: false);
                 //UPDATE THE PASSWORD HERE
-
-                var adminToPatch = _mapper.Map<ChangePasswordDto>(adminEntity);
-                patchDoc.ApplyTo(adminToPatch);
-
-                _mapper.Map(adminToPatch, adminEntity);
-                _repository.Save();
-                //return NoContent();
-                return Ok();
+                var IsPasswordUpdated = UpdatePassword( changePasswordDto);
+                return IsPasswordUpdated;
 
             }
             return BadRequest();
@@ -351,27 +346,52 @@ namespace EasyFlow.Controllers
         {
             int[] monthsForWorker = new int[11] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
             int[] monthsForCompany = new int[11] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
             _dashboardDto.totalworkers = _repository.Worker.CountAllWorkers(trackChanges: false);
             _dashboardDto.totalcompany = _repository.company.CountAllCompanies(trackChanges: false);
             _dashboardDto.worker = _repository.Worker.GetTopRatedWorker(trackChanges: false);
             var workers = _repository.Worker.GetAllWorkers(trackChanges: false);
             var companies = _repository.company.GetCompaniesByCreatedOn(trackChanges: false);
+
             foreach (var worker in workers)
             {
                 int m = DateTime.Parse(worker.CreatedOn).Month;
                 monthsForWorker[m]++;
             }
+            _dashboardDto.workerbyMonth = monthsForWorker;
             foreach (var company in companies)
             {
                 int m = DateTime.Parse(company.CreatedOn).Month;
                 monthsForCompany[m]++;
-
             }
             _dashboardDto.CompanybyMonth = monthsForCompany;
-            _dashboardDto.workerbyMonth = monthsForWorker;
-
-
             return Ok(_dashboardDto);
+        }
+        [HttpPut]
+        public IActionResult UpdatePassword( ChangePasswordDto changePassword)
+        {
+
+            var adminProfile = _repository.Admin.GetAdminPasswordFromEmail(changePassword.recipientMail,trackChanges:false);
+            _repository.Admin.Delete(_repository.Admin.GetAdminPasswordFromEmail(changePassword.recipientMail, trackChanges: false));
+            if (changePassword.password.Equals(changePassword.confirmPassword))
+            {
+                if (!(_validate.IsPasswdStrong(changePassword.confirmPassword)))
+                {
+                    _logger.LogError("Password is too weak");
+                    return BadRequest("Password is too weak");
+                }
+                _adminUpdate.Name = adminProfile.Name;
+                _adminUpdate.Email = adminProfile.Email;
+                _adminUpdate.Pass = changePassword.confirmPassword;
+                _adminUpdate.Mobile = adminProfile.Mobile;
+                var adminUpdateEntity = _mapper.Map<Admin>(_adminUpdate);
+                _repository.Admin.Update(adminUpdateEntity);
+
+                _repository.Save();
+
+                return Ok();
+            }
+           return BadRequest();
         }
     }
 }

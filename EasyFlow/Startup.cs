@@ -47,6 +47,9 @@ namespace EasyFlow
             services.ConfigureCompanyReqEntity();
             services.ConfigureAdminCompanyEntity();
             services.ConfigureDashBoardsDto();
+            services.ConfigureAdminUpdateDto();
+            services.ConfigureTimeStampsEntity();
+            services.ConfigureCompanyEntity();
             services.AddControllers(config =>
             {
                 config.RespectBrowserAcceptHeader = true;

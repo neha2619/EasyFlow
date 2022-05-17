@@ -15,6 +15,7 @@ namespace Contracts
         IAdminCompanyRepository AdminCompany { get; }
         ICompanyReqRepository CompanyReq { get; }
         IOTPsRepository oTPs { get; }
+        ITimestampsRepository Timestamps { get; }
         
         void Save();
 

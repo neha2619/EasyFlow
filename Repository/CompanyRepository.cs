@@ -15,13 +15,15 @@ namespace Repository
         : base(repositoryContext)
         {
         }
+
+        public void CreateCompany(company company) => Create(company);
+        public void UpdateCompany(company company) => Update(company);
+        public void DeleteCompany(company company) => Delete(company);
+
         public IEnumerable<company> GetAllCompanies(bool trackChanges) =>
  FindAll(trackChanges)
  .OrderBy(c => c.CompanyName)
  .ToList();
-
-        public void CreateCompany(company company) => Create(company);
-
 
         public company GetCompanyFromId(Guid CompanyID, bool trackChanges) =>
  FindByCondition(c => c.Id.Equals(CompanyID), trackChanges)
@@ -35,7 +37,7 @@ namespace Repository
  .SingleOrDefault();
         public company GetCompanyPasswordFromEmail(string CompanyEmail, bool trackChanges) =>
  FindByCondition(c => c.CompanyMail.Equals(CompanyEmail), trackChanges)
- .SingleOrDefault();  
+ .SingleOrDefault();
         public company GetCompanyPasswordFromMobile(string CompanyMobile, bool trackChanges) =>
  FindByCondition(c => c.CompanyMobile.Equals(CompanyMobile), trackChanges)
  .SingleOrDefault();
@@ -43,6 +45,8 @@ namespace Repository
         public company GetCompanyFromMobile(string CompanyMobile, bool trackChanges) =>
  FindByCondition(c => c.CompanyMobile.Equals(CompanyMobile), trackChanges)
  .SingleOrDefault();
+
+
 
         public int CountAllCompanies(bool trackChanges) =>
 FindAll(trackChanges).Count();

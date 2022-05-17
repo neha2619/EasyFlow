@@ -13,6 +13,7 @@ namespace EasyFlow
    .ForMember(c => c.CompanyFullAddress,
    opt => opt.MapFrom(x => string.Join(' ', x.CompanyDistrict, x.CompanyState)));
 
+           
             CreateMap<company, CompanyRegistrationDto>();
 
             CreateMap<Worker, WorkerDto>();
@@ -44,12 +45,11 @@ namespace EasyFlow
            CreateMap<CompanyReq, CompanyReq>();
 
 
-            //CreateMap<SuggestedWorkersForCompany,CompanyReq>();
             CreateMap<CompanyReq,SuggestedWorkersForCompany>();
 
             CreateMap<Admin,ChangePasswordDto>();
             CreateMap<ChangePasswordDto, Admin>().ReverseMap();
-
+            
 
         }
     }

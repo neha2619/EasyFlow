@@ -18,6 +18,8 @@ namespace Repository
         }
         //Ignore this message ..
         public void CreateAdmin(Admin admin)=> Create(admin);
+        public void UpdateAdmin(Admin admin)=> Update(admin);
+        public void DeleteAdmin(Admin admin)=> Delete(admin);
 
         public IEnumerable<Admin> GetAllAdmin(bool trackChanges) =>
  FindAll(trackChanges)

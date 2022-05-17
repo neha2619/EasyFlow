@@ -35,8 +35,4 @@
     <ProjectReference Include="..\Util\Util.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Migrations\" />
-  </ItemGroup>
-
 </Project>

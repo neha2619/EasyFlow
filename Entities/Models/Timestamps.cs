@@ -8,15 +8,11 @@ using System.Threading.Tasks;
 
 namespace Entities.Models
 {
-    public class OTPs
+    public class Timestamps
     {
         [Column("Id")]
-        
         public Guid id { get; set; }
-
-        [MaxLength(30, ErrorMessage = "Maximum length for the RecipientMail is 60 characters")]
-        public string recipientEmail { get; set; }
-        public string timestamp { get; set; }
-
+        public Guid RecipientID { get; set; }
+        public string TimeStamp { get; set; }
     }
 }

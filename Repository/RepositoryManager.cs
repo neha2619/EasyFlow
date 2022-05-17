@@ -18,6 +18,7 @@ namespace Repository
         private IAdminRepository _adminRepository;
         private IOTPsRepository _otPsRepository;
         private ICompanyReqRepository _companyReq;
+        private ITimestampsRepository _stampsRepository;
         public RepositoryManager(RepositoryContext repositoryContext)
         {
             _repositoryContext = repositoryContext;
@@ -84,6 +85,16 @@ namespace Repository
                 if (_companyReq == null)
                     _companyReq = new CompanyReqRepository(_repositoryContext);
                 return _companyReq;
+            }
+        }
+        public ITimestampsRepository Timestamps
+        {
+            get
+            {
+                if(_stampsRepository == null)
+                    _stampsRepository = new TimestampsRepository(_repositoryContext);
+                return _stampsRepository;
+
             }
         }
         public void Save() => _repositoryContext.SaveChanges();

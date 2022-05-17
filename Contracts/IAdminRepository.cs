@@ -15,6 +15,8 @@ namespace Contracts
 
 
         void CreateAdmin(Admin admin);
+        void UpdateAdmin(Admin admin);
+        void DeleteAdmin(Admin admin);
 
         Admin GetAdminFromMobile(string Mobile, bool trackChanges);
     }

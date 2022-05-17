@@ -21,11 +21,16 @@ namespace EasyFlow.Controllers
         private readonly IGlobalValidationUtil _validate;
         private readonly IUtil _utilities;
         private readonly OTPs _otp;
+        private readonly Timestamps _timestamps;
+        private readonly company _company;
+
         private static int GeneratedOtp = 0;
         private static bool otpMatched = false;
+        private static int count = 0;
+        private static DateTime lastLoginTime = DateTime.MinValue;
 
         public CompaniesController(IRepositoryManager repository, ILoggerManager logger, IMapper
-            mapper, IGlobalValidationUtil validate, IUtil utilities, OTPs otp)
+            mapper, IGlobalValidationUtil validate, IUtil utilities, OTPs otp, Timestamps timestamps,company company)
         {
             _repository = repository;
             _logger = logger;
@@ -33,9 +38,11 @@ namespace EasyFlow.Controllers
             _validate = validate;
             _utilities = utilities;
             _otp = otp;
+            _timestamps = timestamps;
+            _company = company;
 
         }
-        [HttpGet(Name ="companyById")]
+        [HttpGet(Name = "companyById")]
         public IActionResult GetCompanies()
         {
             var companies = _repository.company.GetAllCompanies(trackChanges: false);
@@ -44,7 +51,7 @@ namespace EasyFlow.Controllers
             return Ok(companiesDto);
 
         }
-      
+
         [HttpGet("{companyName}")]
         public IActionResult GetCompanyByName(string companyName)
         {
@@ -58,7 +65,7 @@ namespace EasyFlow.Controllers
             var companyDto = _mapper.Map<CompanyDto>(company);
             return Ok(companyDto);
         }
-        
+
         [HttpGet("byid/{companyId}")]
         public IActionResult GetCompanyById(Guid companyId)
         {
@@ -69,7 +76,7 @@ namespace EasyFlow.Controllers
                 var companyDto = _mapper.Map<CompanyDto>(company);
                 return NoContent();
             }
-            
+
             _logger.LogInfo($" Company with id {companyId} doesn't exist in the Database");
             return BadRequest();
         }
@@ -153,7 +160,22 @@ namespace EasyFlow.Controllers
                     {
                         if (companyLogin.Pass.Equals(company.CompanyPass))
                         {
-                            return Ok($"Login Successful");
+                            bool isFirstLogin = _utilities.CheckForFirstLogin(company.Id);
+                            if (isFirstLogin)
+                            {
+                                _timestamps.RecipientID = company.Id;
+                                _timestamps.TimeStamp = lastLoginTime.ToString();
+                                _repository.Timestamps.InsertTimestamp(_timestamps);
+                                _repository.Save();
+                            }
+                            var x = CheckNotifications(company.Id);
+                            lastLoginTime = DateTime.Now;
+                            _timestamps.id = new Guid();
+                            _timestamps.RecipientID = company.Id;
+                            _timestamps.TimeStamp = lastLoginTime.ToString();
+                            _repository.Timestamps.InsertTimestamp(_timestamps);
+                            _repository.Save();
+                            return x;
                         }
                         return BadRequest("Password Incorrect");
 
@@ -163,14 +185,13 @@ namespace EasyFlow.Controllers
                 }
                 _logger.LogError("Fields can not be null");
                 return BadRequest("Fields can not be null");
-
             }
             else
             {
 
                 if (companyLogin.Email != null && companyLogin.Pass != null)
                 {
-                  
+
 
                     if (!(_validate.IsEmailValid(companyLogin.Email)))
                     {
@@ -184,7 +205,22 @@ namespace EasyFlow.Controllers
                     {
                         if (companyLogin.Pass.Equals(company.CompanyPass))
                         {
-                            return Ok($"Login Successful");
+                            bool isFirstLogin = _utilities.CheckForFirstLogin(company.Id);
+                            if (isFirstLogin)
+                            {
+                                _timestamps.RecipientID = company.Id;
+                                _timestamps.TimeStamp = lastLoginTime.ToString();
+                                _repository.Timestamps.InsertTimestamp(_timestamps);
+                                _repository.Save();
+                            }
+                            var x = CheckNotifications(company.Id);
+                            lastLoginTime = DateTime.Now;
+                            _timestamps.id = new Guid();
+                            _timestamps.RecipientID = company.Id;
+                            _timestamps.TimeStamp = lastLoginTime.ToString();
+                            _repository.Timestamps.InsertTimestamp(_timestamps);
+                            _repository.Save();
+                            return x;
                         }
                         return BadRequest("Password Incorrect");
 
@@ -226,29 +262,47 @@ namespace EasyFlow.Controllers
         [HttpGet("checkrequeststatus")]
         public IActionResult CheckRequestStatus(CheckRequestsDto checkRequestsDto)
         {
-            if ( checkRequestsDto != null)
+            if (checkRequestsDto != null)
             {
+
                 if (checkRequestsDto.WorkerType != "")
                 {
-                    var requests = _repository.AdminCompany.GetRequestsForWorkerTypeByCompanyId(checkRequestsDto.userID, checkRequestsDto.WorkerType, trackChanges: false);
-                    var reqs = requests.Where(c => c.Equals(checkRequestsDto.WorkerType)).ToList();
-                    var RequestsDto = requests.Select(c => new ReturnRequestStatusToCompanyDto
+                    if (_validate.IsStringValid(checkRequestsDto.WorkerType.ToString()))
                     {
-                        WorkerType = c.WorkerType,
-                        Location = c.Location,
-                        Vacancy = c.Vacancy,
-                        RequestState = c.RequestState,
-                        CreatedOn = c.CreatedOn
-                    }).ToList();
+                        var requests = _repository.AdminCompany.GetRequestsForWorkerTypeByCompanyId(checkRequestsDto.userID, checkRequestsDto.WorkerType, trackChanges: false);
 
-                   
-                    return Ok(RequestsDto);
+                        if (requests != null)
+                        {
+                            var RequestsDto = requests.Select(c => new ReturnRequestStatusToCompanyDto
+                            {
+                                WorkerType = c.WorkerType,
+                                Location = c.Location,
+                                Vacancy = c.Vacancy,
+                                RequestState = c.RequestState,
+                                CreatedOn = c.CreatedOn
+                            }).ToList();
+
+                            if (RequestsDto.Count > 0)
+                            {
+                                return Ok(RequestsDto);
+                            }
+                            else
+                            {
+                                return NotFound();
+                            }
+                        }
+                    }
+
+                    return BadRequest();
                 }
                 else
                 {
-                    if ( checkRequestsDto.WorkerType=="")
+
+                    if (checkRequestsDto.WorkerType == "")
                     {
-                        var requests = _repository.AdminCompany.GetRequestsForWorkerTypeByCompanyId(checkRequestsDto.userID,checkRequestsDto.WorkerType, trackChanges: false);
+
+                        var requests = _repository.AdminCompany.GetRequestsForWorkerTypeByCompanyId(checkRequestsDto.userID, checkRequestsDto.WorkerType, trackChanges: false);
+
                         var RequestsDto = requests.Select(c => new ReturnRequestStatusToCompanyDto
                         {
                             WorkerType = c.WorkerType,
@@ -304,14 +358,14 @@ namespace EasyFlow.Controllers
                 string body = "Hello the OTP to reset your password is :\n" + GeneratedOtp.ToString() + "\n It is valid for 120 seconds";
                 _utilities.SendEmail(OtpDto.email, body, sub);
                 var otp = _mapper.Map<OTPs>(_otp);
-               
-                    _otp.recipientEmail = OtpDto.email;
-                    _otp.timestamp = DateTime.Now.ToString();
 
-                    _repository.oTPs.CreateOtpObject(_otp);
-                    _repository.Save();
-                
-              
+                _otp.recipientEmail = OtpDto.email;
+                _otp.timestamp = DateTime.Now.ToString();
+
+                _repository.oTPs.CreateOtpObject(_otp);
+                _repository.Save();
+
+
             }
             catch (Exception e)
             {
@@ -320,7 +374,7 @@ namespace EasyFlow.Controllers
             }
             return Ok();
         }
-        
+
         [HttpPost("verifyotp")]
         public IActionResult VerifyOtp(OtpsDto OtpDto)
         {
@@ -344,20 +398,89 @@ namespace EasyFlow.Controllers
             return BadRequest("Otp Expired");
         }
 
-        [HttpPatch("changepassword")]
+        [HttpGet("changepassword")]
         public IActionResult ChangePassword(ChangePasswordDto changePasswordDto)
         {
-
             if (otpMatched)
             {
                 if (changePasswordDto.password.Equals(changePasswordDto.confirmPassword))
                 {
-                    //UPDATE THE PASSWORD HERE
-                    return Ok();
+                    return UpdatePassword(changePasswordDto);
+                }
+                return BadRequest("Confirm Password not matched");
+            }
+            else
+            {
+                return BadRequest();
+            }
+           
+        }
+        [HttpPut]
+        public IActionResult UpdatePassword(ChangePasswordDto changePassword)
+        {
+            var companyProfile = _repository.company.GetCompanyFromEmail(changePassword.recipientMail,trackChanges:false);
+            _repository.company.DeleteCompany(_repository.company.GetCompanyPasswordFromEmail(changePassword.recipientMail, trackChanges: false));
+            if (changePassword.password.Equals(changePassword.confirmPassword))
+            {
+                if (!(_validate.IsPasswdStrong(changePassword.confirmPassword)))
+                {
+
+                    _logger.LogError("Password is too weak");
+                    return BadRequest("Password is too weak");
+                }
+                _company.CompanyName = companyProfile.CompanyName;
+                _company.CompanyMail = companyProfile.CompanyMail;
+                _company.CompanyGstin = companyProfile.CompanyGstin;
+                _company.CompanyCin = companyProfile.CompanyCin;
+                _company.CompanyMobile = companyProfile.CompanyMobile;
+                _company.CompanyArea = companyProfile.CompanyArea;
+                _company.CompanySubArea = companyProfile.CompanySubArea;
+                _company.CompanyState = companyProfile.CompanyState;
+                _company.CompanyDistrict = companyProfile.CompanyDistrict;
+                _company.CreatedOn = companyProfile.CreatedOn;
+                companyProfile.UpdatedOn = DateTime.Now.ToString();
+                _company.KYCStatus = companyProfile.KYCStatus;
+                _company.WorkerNumber = companyProfile.WorkerNumber;
+                _company.CompanyType = companyProfile.CompanyType;
+                _company.SiteLocation = companyProfile.SiteLocation;
+                _company.CompanyPass = changePassword.confirmPassword;
+                _repository.company.UpdateCompany(_company);
+                _repository.Save();
+            }
+            return Ok();
+        }
+
+        [HttpGet("Notifications")]
+        public IActionResult CheckNotifications(Guid id)
+        {
+            var requests = _repository.CompanyReq.GetAllSuggestedWorkers(id, trackChanges: false);
+            var loginTimestamps = _repository.Timestamps.GetLastLoginTimeById(id, trackchanges: false).Reverse();
+            lastLoginTime = DateTime.Parse(loginTimestamps.ElementAt(0).TimeStamp);
+            List<CompanyReq> LatestReq = new List<CompanyReq>();
+            foreach (var request in requests)
+            {
+                if (DateTime.Parse(request.CreatedOn) > lastLoginTime)
+                {
+                    count++;
+                    LatestReq.Add(request);
+                }
+                else
+                {
+                    continue;
                 }
             }
-            return BadRequest();
+            var x = LatestReq.ToArray();
 
+            if (LatestReq.Count > 0)
+            {
+                for (int i = 0; i < LatestReq.Count; i++)
+                {
+                    var newRequests = x[i];
+                }
+                return Ok(LatestReq);
+            }
+            return NoContent();
         }
+       
     }
 }
