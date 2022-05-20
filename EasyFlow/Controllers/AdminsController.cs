@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 //using System.Threading;
 using System.Timers;
@@ -28,12 +29,17 @@ namespace EasyFlow.Controllers
         private readonly DashBoardDto _dashboardDto;
         private readonly OTPs _otp;
         private readonly AdminUpdateDto _adminUpdate;
-        private static bool otpMatched = false;
+        private readonly Timestamps _timestamps;
+        private readonly WorkerReq _workerReq;
+
 
 
         private static int GeneratedOtp = 0;
+        private static int count = 0;
+        private static bool otpMatched = false;
+        private static DateTime lastLoginTime = DateTime.MinValue;
 
-        public AdminController(IRepositoryManager repository, ILoggerManager logger, IMapper mapper, IGlobalValidationUtil validate, IUtil utilities, OTPs otp, CompanyReq companyReq, AdminCompany adminCompany, DashBoardDto dashboardDto,AdminUpdateDto adminUpdate)
+        public AdminController(IRepositoryManager repository, ILoggerManager logger, IMapper mapper, IGlobalValidationUtil validate, IUtil utilities, OTPs otp, CompanyReq companyReq, AdminCompany adminCompany, DashBoardDto dashboardDto, AdminUpdateDto adminUpdate, Timestamps timestamps, WorkerReq workerReq)
         {
             _repository = repository;
             _logger = logger;
@@ -45,6 +51,8 @@ namespace EasyFlow.Controllers
             _adminCompany = adminCompany;
             _dashboardDto = dashboardDto;
             _adminUpdate = adminUpdate;
+            _timestamps = timestamps;
+            _workerReq = workerReq;
 
         }
         [HttpGet(Name = "AdminById")]
@@ -91,6 +99,7 @@ namespace EasyFlow.Controllers
         [HttpGet("login")]
         public IActionResult LoginAdmin([FromBody] LoginDto adminLogin)
         {
+            bool IsFirstLogin;
             if (adminLogin.Email != null && adminLogin.Mobile != null && adminLogin.Pass != null)
             {
                 return StatusCode(405, "Now Allowed");
@@ -108,10 +117,25 @@ namespace EasyFlow.Controllers
 
                     if (Admin != null)
                     {
+
                         if (adminLogin.Pass.Equals(Admin.Pass))
                         {
-
-                            return Ok($"Login Successful");
+                            IsFirstLogin = _utilities.CheckForFirstLogin(Admin.Id);
+                            if (IsFirstLogin)
+                            {
+                                _timestamps.RecipientID = Admin.Id;
+                                _timestamps.TimeStamp = lastLoginTime.ToString();
+                                _repository.Timestamps.InsertTimestamp(_timestamps);
+                                _repository.Save();
+                            }
+                            var x = CheckNotificationsFromCompany(Admin.Id);
+                            lastLoginTime = DateTime.Now;
+                            _timestamps.id = new Guid();
+                            _timestamps.RecipientID = Admin.Id;
+                            _timestamps.TimeStamp = lastLoginTime.ToString();
+                            _repository.Timestamps.InsertTimestamp(_timestamps);
+                            _repository.Save();
+                            return x;
                         }
                         return BadRequest("Password Incorrect");
                     }
@@ -179,100 +203,174 @@ namespace EasyFlow.Controllers
         public IActionResult PostRequestsForWorker(GetRequestDetailsFromCompanyDto getRequest)
         {
             int c = 0;
+            int vacancyToReturn = 0;
             DateTime mindateTime = DateTime.MaxValue;
             List<String> createdon = new List<string>();
-            if (getRequest.CompanyId.ToString() !="") 
-            { 
-            if (getRequest.workerType != "" && getRequest.location != "")
+            List<String> createdonForCompany = new List<string>();
+            if (getRequest.CompanyId.ToString() != "")
             {
-                if (_validate.IsStringValid(getRequest.workerType) && _validate.IsNumberValid(getRequest.vacancy))
+                if (getRequest.workerType != "" && getRequest.location != "")
                 {
-
-                    var workFound = _repository.AdminCompany.GetRequestsByCompanyId(getRequest.CompanyId, trackChanges: false);
-                    var workersFound = _repository.AdminWorker.GetAllRequestByWorkerType(getRequest.workerType, trackChanges: false);
-
-                    foreach (AdminWorker worker in workersFound)
+                    if (_validate.IsStringValid(getRequest.workerType) && _validate.IsNumberValid(getRequest.vacancy))
                     {
+
+                        var workFound = _repository.AdminCompany.GetRequestsByCompanyId(getRequest.CompanyId,getRequest.createdOn, trackChanges: false);
+                        var workersFound = _repository.AdminWorker.GetAllRequestByWorkerType(getRequest.workerType, trackChanges: false);
+
+                        int wcount = createdon.Count;
+                        int max = 0;
+                        foreach (AdminWorker worker in workersFound)
+                        {
                             //getting the match count
-                        if (worker.WorkerType.Equals(getRequest.workerType) && worker.Location.Equals(getRequest.location))
-                        {
-                            c++;
+                            if (worker.WorkerType.Equals(getRequest.workerType) && worker.Location.Equals(getRequest.location))
+                            {
+                                c++;
+                            }
+
                         }
 
-                    }
-                   
-                    foreach (AdminWorker worker in workersFound)
-                    {
+                        foreach (AdminWorker worker in workersFound)
+                        {
                             //if only one match  is found
-                        if (worker.WorkerType.Equals(getRequest.workerType) && worker.Location.Equals(getRequest.location) && c == 1)
-                        {
-                            _companyReq.WorkerId = worker.WorkerId;
-                            _companyReq.CompanyId = getRequest.CompanyId;
-                            _companyReq.RequestStatus = "Pending";
-                            _companyReq.CreatedOn = DateTime.Now.ToString();
-                            _repository.CompanyReq.CreateCompanyRequest(_companyReq);
-                            _repository.Save();
-                            //update the VACANCY HERE
-                        }
-                        else
-                        {
-                                //block to find the worker's who requested first
-                            var w = _repository.AdminWorker.GetAllRequestByCreatedOn(getRequest.workerType, trackChanges: false);
-                            foreach (var we in w)
+                            if (worker.WorkerType.Equals(getRequest.workerType) && worker.Location.Equals(getRequest.location) && c == 1)
                             {
-                                if (we != null && createdon.Contains(we.CreatedOn))
+                                _companyReq.WorkerId = worker.WorkerId;
+                                _companyReq.CompanyId = getRequest.CompanyId;
+                                _companyReq.RequestStatus = "Pending";
+                                _companyReq.CreatedOn = DateTime.Now.ToString();
+                                _repository.CompanyReq.CreateCompanyRequest(_companyReq);
+                                _repository.Save();
+                                //update the VACANCY HERE
+                              
+                                vacancyToReturn = (Convert.ToInt32(getRequest.vacancy) - 1);
+
+                            }
+                            else if(c <= Convert.ToInt32(getRequest.vacancy))
+                            {
+                                //block to find the worker's who requested first
+                                vacancyToReturn = Convert.ToInt32(getRequest.vacancy);
+                                var w = _repository.AdminWorker.GetAllRequestByCreatedOn(getRequest.workerType, trackChanges: false);
+                                foreach (var we in w)
                                 {
+                                    if (we != null && createdon.Contains(we.CreatedOn))
+                                    {
                                         continue;
+                                    }
+                                    else
+                                    {
+                                        createdon.Add(we.CreatedOn);
+                                    }
+                                }
+                                 wcount = createdon.Count;
+                                 max = 0;
+                                if (wcount > Convert.ToInt32(getRequest.vacancy))
+                                {
+                                    //searching if workers found are less than vacancy
+                                    max = Convert.ToInt32(getRequest.vacancy);
                                 }
                                 else
                                 {
-                                    createdon.Add(we.CreatedOn);
+                                    //searching if workers found are greater than vacancy
+                                    max = wcount;
+                                }
+
+                                _logger.LogDebug($"this is wcount : {wcount}");
+                                for (int i = 0; i < max; i++)
+                                {
+
+                                    var workertosend = _repository.AdminWorker.GetWorkerByTimestamp(createdon[i], trackChanges: false);
+
+                                    if (workertosend != null)
+                                    {
+                                        _companyReq.WorkerId = workertosend.WorkerId;
+                                        _companyReq.RequestStatus = "Pending";
+                                        _companyReq.CompanyId = getRequest.CompanyId;
+                                        _companyReq.CreatedOn = DateTime.Now.ToString();
+                                        var companyreq = _mapper.Map<CompanyReq>(_companyReq);
+                                        _repository.CompanyReq.CreateCompanyRequest(companyreq);
+                                        _repository.Save();
+                                        vacancyToReturn--;
+                                        var workerToDelete = _repository.AdminWorker.GetWorkerByTimestamp(createdon[i], trackChanges: true);
+
+                                        _repository.AdminWorker.DeleteWorker(workerToDelete);
+                                        _repository.AdminCompany.DeleteRequest(workFound);
+                                        _adminCompany.WorkerType = getRequest.workerType;
+                                        _adminCompany.CompanyId = getRequest.CompanyId;
+                                        _adminCompany.Location = getRequest.location;
+                                        _adminCompany.RequestState = "Requested";
+                                        _adminCompany.CreatedOn = DateTime.Now.ToString();
+                                        _adminCompany.Vacancy = vacancyToReturn.ToString();
+                                        _repository.AdminCompany.CreateRequest(_adminCompany);
+                                        _repository.Save();
+
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                if (wcount > vacancyToReturn)
+                                {
+                                    //searching if workers found are less than vacancy
+                                    max = Convert.ToInt32(getRequest.vacancy);
+                                }
+                                else
+                                {
+                                    //searching if workers found are greater than vacancy
+                                    max = wcount;
+                                }
+                                _logger.LogDebug($"this is wcount : {wcount}");
+                                var workertosend = _repository.Worker.GetWorkerFromTypeAndLocation(getRequest.workerType, getRequest.location, trackChanges: false);
+                                for (int i = 0; i < max; i++)
+                                {
+
+                                    
+
+                                    if (workertosend != null)
+                                    {
+                                        _workerReq.WorkerId = workertosend[i].Id;
+                                        _workerReq.RequestStatus = "Pending";
+                                        _workerReq.WorkerId = getRequest.CompanyId;
+                                        _companyReq.CreatedOn = DateTime.Now.ToString();
+                                        var companyreq = _mapper.Map<CompanyReq>(_companyReq);
+                                        _repository.CompanyReq.CreateCompanyRequest(companyreq);
+                                        _repository.Save();
+                                        vacancyToReturn--;
+                                        var workerToDelete = _repository.AdminWorker.GetWorkerByTimestamp(createdon[i], trackChanges: true);
+
+                                        _repository.AdminWorker.DeleteWorker(workerToDelete);
+                                        _repository.AdminCompany.DeleteRequest(workFound);
+                                        _adminCompany.WorkerType = getRequest.workerType;
+                                        _adminCompany.CompanyId = getRequest.CompanyId;
+                                        _adminCompany.Location = getRequest.location;
+                                        _adminCompany.RequestState = "Requested";
+                                        _adminCompany.CreatedOn = DateTime.Now.ToString();
+                                        _adminCompany.Vacancy = vacancyToReturn.ToString();
+                                        _repository.AdminCompany.CreateRequest(_adminCompany);
+                                        _repository.Save();
+
+                                    }
                                 }
                             }
                         }
+                       
+                        _repository.AdminCompany.DeleteRequest(workFound);
+                        _adminCompany.WorkerType = getRequest.workerType;
+                        _adminCompany.CompanyId = getRequest.CompanyId;
+                        _adminCompany.Location = getRequest.location;
+                        _adminCompany.RequestState = "Requested";
+                        _adminCompany.CreatedOn = DateTime.Now.ToString();
+                        _adminCompany.Vacancy = vacancyToReturn.ToString();
+                        _repository.AdminCompany.CreateRequest(_adminCompany);
+                        _repository.Save();
+
+                       var companyEntity = _repository.CompanyReq.GetAllSuggestedWorkers(getRequest.CompanyId, trackChanges: false);
+                        var companyToReturn = _mapper.Map<IEnumerable<SuggestedWorkersForCompany>>(companyEntity);
+                        return Ok(companyToReturn);
                     }
-                    int wcount = createdon.Count;
-                    int max = 0;
-                    if (wcount > Convert.ToInt32(getRequest.vacancy))
-                    {
-                            //searching if workers found are less than vacancy
-                        max = Convert.ToInt32(getRequest.vacancy);
-                    }
-                    else
-                    {
-                            //searching if workers found are greater than vacancy
-                        max = wcount;
-                    }
-                    for (int i = 0; i < max; i++)
-                    {
-
-                        var workertosend = _repository.AdminWorker.GetWorkerByTimestamp(createdon[i], trackChanges: false);
-
-                        if (workertosend != null)
-                        {
-                            _companyReq.WorkerId = workertosend.WorkerId;
-                            _companyReq.RequestStatus = "Waiting For Response";
-                            _companyReq.CompanyId = getRequest.CompanyId;
-                            _companyReq.CreatedOn = DateTime.Now.ToString();
-                            var companyreq = _mapper.Map<CompanyReq>(_companyReq);
-                            _repository.CompanyReq.CreateCompanyRequest(companyreq);
-                            _repository.Save();
-                            var workerToDelete = _repository.AdminWorker.GetWorkerByTimestamp(createdon[i], trackChanges: true);
-                            _repository.AdminWorker.DeleteWorker(workerToDelete);
-                        }
-                    }
-
-                    // {create a new ADMIN COMPANY OBJECT WITH  THE LEFT OFF VACANCY IN THAT PARTICULAR REQUEST OF THE COMPANY... HERE}
-
-
-                    var companyEntity = _repository.CompanyReq.GetAllSuggestedWorkers(getRequest.CompanyId, trackChanges: false);
-                    var companyToReturn = _mapper.Map<IEnumerable<SuggestedWorkersForCompany>>(companyEntity);
-                    return Ok(companyEntity);
+                    _logger.LogInfo("Worker Type is not valid");
+                    return BadRequest("WorkerType Not Valid");
                 }
-                _logger.LogInfo("Worker Type is not valid");
-                return BadRequest("WorkerType Not Valid");
             }
-        }
             _logger.LogError("Entered Request Details are Invalid");
             return BadRequest();
         }
@@ -329,12 +427,12 @@ namespace EasyFlow.Controllers
             return BadRequest("Otp Expired");
         }
         [HttpGet("changepassword")]
-        public IActionResult ChangePassword( [FromBody] ChangePasswordDto changePasswordDto)
+        public IActionResult ChangePassword([FromBody] ChangePasswordDto changePasswordDto)
         {
             if (otpMatched)
             {
                 //UPDATE THE PASSWORD HERE
-                var IsPasswordUpdated = UpdatePassword( changePasswordDto);
+                var IsPasswordUpdated = UpdatePassword(changePasswordDto);
                 return IsPasswordUpdated;
 
             }
@@ -367,11 +465,12 @@ namespace EasyFlow.Controllers
             _dashboardDto.CompanybyMonth = monthsForCompany;
             return Ok(_dashboardDto);
         }
+
         [HttpPut]
-        public IActionResult UpdatePassword( ChangePasswordDto changePassword)
+        public IActionResult UpdatePassword(ChangePasswordDto changePassword)
         {
 
-            var adminProfile = _repository.Admin.GetAdminPasswordFromEmail(changePassword.recipientMail,trackChanges:false);
+            var adminProfile = _repository.Admin.GetAdminPasswordFromEmail(changePassword.recipientMail, trackChanges: false);
             _repository.Admin.Delete(_repository.Admin.GetAdminPasswordFromEmail(changePassword.recipientMail, trackChanges: false));
             if (changePassword.password.Equals(changePassword.confirmPassword))
             {
@@ -386,12 +485,73 @@ namespace EasyFlow.Controllers
                 _adminUpdate.Mobile = adminProfile.Mobile;
                 var adminUpdateEntity = _mapper.Map<Admin>(_adminUpdate);
                 _repository.Admin.Update(adminUpdateEntity);
-
                 _repository.Save();
 
                 return Ok();
             }
-           return BadRequest();
+            return BadRequest();
+        }
+        [HttpGet("Notifications")]
+        public IActionResult CheckNotificationsFromCompany(Guid id)
+        {
+            var requests = _repository.AdminCompany.GetAllRequest(trackChanges: false);
+            var loginTimestamps = _repository.Timestamps.GetLastLoginTimeById(id, trackchanges: false).Reverse();
+            lastLoginTime = DateTime.Parse(loginTimestamps.ElementAt(0).TimeStamp);
+            List<AdminCompany> LatestReq = new List<AdminCompany>();
+            foreach (var request in requests)
+            {
+                if (DateTime.Parse(request.CreatedOn) > lastLoginTime)
+                {
+                    count++;
+                    LatestReq.Add(request);
+                }
+                else
+                {
+                    continue;
+                }
+            }
+            var x = LatestReq.ToArray();
+
+            if (LatestReq.Count > 0)
+            {
+                for (int i = 0; i < LatestReq.Count; i++)
+                {
+                    var newRequests = x[i];
+                }
+                return Ok(LatestReq);
+            }
+            return NoContent();
+        }
+        [HttpGet("Notification/{id}")]
+        public IActionResult CheckNotificationsFromWorker(Guid id)
+        {
+            var requests = _repository.AdminWorker.GetAllRequest(trackChanges: false);
+            var loginTimestamps = _repository.Timestamps.GetLastLoginTimeById(id, trackchanges: false).Reverse();
+            lastLoginTime = DateTime.Parse(loginTimestamps.ElementAt(0).TimeStamp);
+            List<AdminWorker> LatestReq = new List<AdminWorker>();
+            foreach (var request in requests)
+            {
+                if (DateTime.Parse(request.CreatedOn) > lastLoginTime)
+                {
+                    count++;
+                    LatestReq.Add(request);
+                }
+                else
+                {
+                    continue;
+                }
+            }
+            var x = LatestReq.ToArray();
+
+            if (LatestReq.Count > 0)
+            {
+                for (int i = 0; i < LatestReq.Count; i++)
+                {
+                    var newRequests = x[i];
+                }
+                return Ok(LatestReq);
+            }
+            return NoContent();
         }
     }
 }

@@ -7,19 +7,17 @@ using System.Threading.Tasks;
 
 namespace Entities.Models
 {
-    public class WorkerReq
+    public class BackupAdminWorker
     {
-        //table when admin requests any work to workers
         [Column("Id")]
         public Guid Id { get; set; }
         [ForeignKey(nameof(Worker))]
         public Guid WorkerId { get; set; }
-        //add forignkey of companyid
-
-        public string WorkerType { get; set; }  
+        public Worker Worker { get; set; }
+        public string WorkerType { get; set; }
         public string Location { get; set; }
-        public string RequestStatus { get; set; }
-        public string CreatedOn { get; set; }
 
+        public string RequestState { get; set; }
+        public string CreatedOn { get; set; }
     }
 }

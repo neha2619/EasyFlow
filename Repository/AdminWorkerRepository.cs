@@ -17,6 +17,11 @@ namespace Repository
         {
         }
         public void CreateRequest(AdminWorker workersRequest) => Create(workersRequest);
+
+
+        public IEnumerable<AdminWorker> GetAllRequest(bool trackChanges) =>
+FindAll(trackChanges).OrderBy(c => c.CreatedOn)
+ .ToList();
         public IEnumerable<AdminWorker> GetRequestsByWorkerId(Guid userId, bool trackChanges) => FindByCondition(c => c.WorkerId.Equals(userId), trackChanges).OrderBy(c => c.CreatedOn).ToList();
         public IEnumerable<AdminWorker> GetAllRequestByWorkerType(string workerType, bool trackChanges) =>
 FindByCondition(c => c.WorkerType.Equals(workerType), trackChanges).OrderBy(c => c.WorkerType)

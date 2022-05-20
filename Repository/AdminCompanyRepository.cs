@@ -18,14 +18,21 @@ namespace Repository
         }
 
         public void CreateRequest(AdminCompany adminrequest) => Create(adminrequest);
+        public void UpdateRequest(AdminCompany adminrequest) => Update(adminrequest);
         public void DeleteRequest(AdminCompany companiesRequest) => Delete(companiesRequest);
+
 
         public IEnumerable<AdminCompany> GetAllRequest(string workerType, bool trackChanges) =>
 FindByCondition(c => c.WorkerType.Equals(workerType), trackChanges).OrderBy(c => c.WorkerType)
  .ToList();
+        public IEnumerable<AdminCompany> GetAllRequest( bool trackChanges) =>
+FindAll( trackChanges).OrderBy(c => c.CreatedOn)
+ .ToList();
         public IEnumerable<AdminCompany> GetRequestsForWorkerTypeByCompanyId(Guid companyId, string workerType, bool trackChanges) => FindByCondition(c => c.CompanyId.Equals(companyId) && c.WorkerType.Equals(workerType), trackChanges).OrderBy(c => c.WorkerType).ToList(); 
-        public IEnumerable<AdminCompany> GetRequestsForWorkerTypeLocation(string location, string workerType, bool trackChanges) => FindByCondition(c => c.Location.Equals(location) && c.WorkerType.Equals(workerType), trackChanges).OrderBy(c => c.WorkerType).ToList();
-        public IEnumerable<AdminCompany>GetRequestsByCompanyId(Guid userId,bool trackChanges) =>FindByCondition(c =>c.CompanyId.Equals(userId)  ,trackChanges).OrderBy(c => c.WorkerType).ToList();
+        public IEnumerable<AdminCompany> GetRequestsForWorkerTypeLocation(string location, string workerType, bool trackChanges) => FindByCondition(c => c.Location.Equals(location) && c.WorkerType.Equals(workerType), trackChanges).OrderBy(c => c.WorkerType).ToList(); 
+        public AdminCompany GetRequestByTimeStamp(string timestamp,bool trackChanges) =>FindByCondition(c=>c.CreatedOn.Equals(timestamp),trackChanges).OrderBy(c=>c.CreatedOn).First();
+        public AdminCompany GetRequestsByCompanyId(Guid userId,string timestamp,bool trackChanges) =>FindByCondition(c =>c.CompanyId.Equals(userId) && c.CreatedOn.Equals(timestamp), trackChanges).OrderBy(c => c.WorkerType).SingleOrDefault();
+        
 
 
     }

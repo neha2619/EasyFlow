@@ -17,7 +17,7 @@ namespace Contracts
         Worker GetWorkerFromMobile(string WorkerMobile, bool trackChanges);
         Worker GetWorkerFromId(Guid workerId, bool trackChanges);
         int CountAllWorkers(bool trackChanges);
-
+        Worker[] GetWorkerFromTypeAndLocation(string WorkerType, string Location, bool trackChanges);
         IEnumerable<Worker> GetTopRatedWorker( bool trackChanges);
         IEnumerable<Worker> GetWorkersByCreatedOn(bool trackChanges);
 
