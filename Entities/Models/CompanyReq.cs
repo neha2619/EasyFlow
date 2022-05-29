@@ -11,10 +11,13 @@ namespace Entities.Models
     {
         [Column("Id")]
         public Guid Id { get; set; }
-        [ForeignKey(nameof(company))]
-        public Guid CompanyId { get; set; }
-        [ForeignKey(nameof(Worker))]
-        public Guid WorkerId { get; set; }
+        public string CompanyId { get; set; }
+       public string WorkerId { get; set; }
+        public string WorkerName { get; set; }
+        public string email { get; set; }//this is workeremail
+        public string Mobile { get; set; }//this is workermobile
+        public string WorkerType { get; set; }
+        public string Location { get; set; }
         public string RequestStatus { get; set; }
         public string CreatedOn { get; set; }
 

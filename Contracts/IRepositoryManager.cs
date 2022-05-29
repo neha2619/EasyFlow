@@ -11,11 +11,13 @@ namespace Contracts
         ICompanyRepository company { get; }
         IWorkerRepository Worker { get; }
         IAdminRepository Admin { get; }
+        IWorkerReqRepository WorkerReq { get; }
         IAdminWorkerRepository AdminWorker { get; }
         IAdminCompanyRepository AdminCompany { get; }
         ICompanyReqRepository CompanyReq { get; }
         IOTPsRepository oTPs { get; }
         ITimestampsRepository Timestamps { get; }
+        ITotalCountsRepository TotalCounts { get; }
         
         void Save();
 

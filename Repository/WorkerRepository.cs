@@ -27,6 +27,9 @@ FindAll(trackChanges).Count();
         public Worker GetWorkerPasswordFromMobile(string WorkerMobile, bool trackChanges) =>
  FindByCondition(c => c.WorkerMobile.Equals(WorkerMobile), trackChanges)
  .SingleOrDefault();
+        public Worker GetWorkerFromID(Guid ID, bool trackChanges) =>
+ FindByCondition(c => c.Id.Equals(ID), trackChanges)
+ .SingleOrDefault();
         public IEnumerable<Worker> GetWorkerFromType(string WorkerType, bool trackChanges) =>
  FindByCondition(c => c.WorkerType.Equals(WorkerType), trackChanges).OrderBy(c=>c.WorkerType).ToList();
         public Worker[] GetWorkerFromTypeAndLocation(string WorkerType, string Location, bool trackChanges) =>

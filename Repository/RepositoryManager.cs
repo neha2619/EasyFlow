@@ -19,6 +19,8 @@ namespace Repository
         private IOTPsRepository _otPsRepository;
         private ICompanyReqRepository _companyReq;
         private ITimestampsRepository _stampsRepository;
+        private ITotalCountsRepository _totalCountsRepository;
+        private IWorkerReqRepository _workerReqRepository;
         public RepositoryManager(RepositoryContext repositoryContext)
         {
             _repositoryContext = repositoryContext;
@@ -95,6 +97,26 @@ namespace Repository
                     _stampsRepository = new TimestampsRepository(_repositoryContext);
                 return _stampsRepository;
 
+            }
+        }
+
+        public ITotalCountsRepository TotalCounts
+        {
+            get
+            {
+                if(_totalCountsRepository==null)
+                    _totalCountsRepository = new TotalCountsRepository(_repositoryContext);
+                return (_totalCountsRepository);
+            }
+        }
+
+        public IWorkerReqRepository WorkerReq
+        {
+            get
+            {
+                if (_workerReqRepository == null)
+                    _workerReqRepository = new WorkerReqRepository(_repositoryContext);
+                return(_workerReqRepository);
             }
         }
         public void Save() => _repositoryContext.SaveChanges();

@@ -26,6 +26,7 @@ namespace EasyFlow.Controllers
         private static int GeneratedOtp = 0;
         private static int count = 0;
         private static bool otpMatched = false;
+        private static  string workerId = "";
         private static DateTime lastLoginTime = DateTime.MinValue;
 
 
@@ -105,6 +106,7 @@ namespace EasyFlow.Controllers
                    
 
                     var Worker = _repository.Worker.GetWorkerPasswordFromMobile(workerLogin.Mobile, trackChanges: false);
+                    workerId = Worker.Id.ToString();
 
                     if (Worker != null)
                     {
@@ -144,7 +146,8 @@ namespace EasyFlow.Controllers
                 if (workerLogin.Email != null && workerLogin.Pass != null)
                 {
                     var Worker = _repository.Worker.GetWorkerPasswordFromEmail(workerLogin.Email, trackChanges: false);
-
+                    workerId = Worker.Id.ToString();
+                    
                     if (Worker != null)
                     {
                         if (workerLogin.Pass.Equals(Worker.WorkerPass))
@@ -202,13 +205,14 @@ namespace EasyFlow.Controllers
             return NoContent();
         }
         
-        [HttpPost("apply/{workerId}")]
-        public IActionResult RequestForJob(Guid workerId , WorkerRequestToCompanyDto requestDto)
+        [HttpPost("apply")]
+        public IActionResult RequestForJob( WorkerRequestToCompanyDto requestDto)
         {
-            
-            if (workerId.ToString() !=null && (workerId.ToString() != ""))
+            _logger.LogError($"{workerId} is here");
+
+            if (workerId!=null && (workerId != ""))
             {
-                var worker = _repository.Worker.GetWorkerFromId(workerId ,trackChanges: false);
+                var worker = _repository.Worker.GetWorkerFromId(Guid.Parse(workerId) ,trackChanges: false);
                 if (worker != null)
                 {
                     if (!(_validate.IsStringValid(requestDto.WorkerType)) && !(_validate.IsStringValid(requestDto.Location)))
@@ -216,7 +220,8 @@ namespace EasyFlow.Controllers
                         _logger.LogError("Entered Request Details are Invalid");
                         return BadRequest();
                     }
-                    requestDto.WorkerId = workerId;
+                    requestDto.WorkerName = worker.WorkerName;
+                    requestDto.WorkerId = Guid.Parse( workerId);
                     requestDto.requestState = "Request is Processing";
                     requestDto.CreatedOn = DateTime.Now.ToString();
                     var workerRequest = _mapper.Map<AdminWorker>(requestDto);

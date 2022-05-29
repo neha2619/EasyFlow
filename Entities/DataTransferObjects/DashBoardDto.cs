@@ -9,8 +9,8 @@ namespace Entities.DataTransferObjects
 {
     public class DashBoardDto
     {
-        public int totalworkers { get; set; }
-        public int totalcompany { get; set; }
+        
+        public IEnumerable<TotalCounts> totalcounts { get; set; }
         public IEnumerable<int> workerbyMonth { get; set; }
         public IEnumerable<int> CompanybyMonth { get; set; }
         public IEnumerable< Worker> worker { get; set; }

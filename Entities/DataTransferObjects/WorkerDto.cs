@@ -14,5 +14,7 @@ namespace Entities.DataTransferObjects
         public string WorkerMobile { get; set; }
         public string WorkerMail { get; set; }
         public string WorkerType { get; set; }
+        public string LocationPreference { get; set; }
+        public string ratings { get; set; }
     }
 }

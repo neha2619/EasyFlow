@@ -9,6 +9,7 @@ namespace Entities.DataTransferObjects
     public class CompaniesRequestsDto
     {
         public Guid CompanyID {get ;set;}
+        public string CompanyName {get ;set;}
         public string WorkerType { get; set; }
         public string Location { get; set; }
         public string Vacancy { get; set; }

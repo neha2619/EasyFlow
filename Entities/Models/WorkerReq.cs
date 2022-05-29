@@ -12,10 +12,12 @@ namespace Entities.Models
         //table when admin requests any work to workers
         [Column("Id")]
         public Guid Id { get; set; }
-        [ForeignKey(nameof(Worker))]
-        public Guid WorkerId { get; set; }
+        public string WorkerId { get; set; }
         //add forignkey of companyid
-
+        public string CompanyId { get; set; }
+        public string CompanyName { get; set; }
+        public string CompanyMail { get; set; }
+        public string CompanyMobile { get; set; }
         public string WorkerType { get; set; }  
         public string Location { get; set; }
         public string RequestStatus { get; set; }

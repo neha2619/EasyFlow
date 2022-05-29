@@ -4,14 +4,16 @@ using Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace EasyFlow.Migrations
 {
     [DbContext(typeof(RepositoryContext))]
-    partial class RepositoryContextModelSnapshot : ModelSnapshot
+    [Migration("20220521150838_TotalCounts")]
+    partial class TotalCounts
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -62,9 +64,6 @@ namespace EasyFlow.Migrations
 
                     b.Property<Guid>("CompanyId")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("CompanyName")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CreatedOn")
                         .HasColumnType("nvarchar(max)");
@@ -125,9 +124,6 @@ namespace EasyFlow.Migrations
                     b.Property<Guid>("WorkerId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("WorkerName")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("WorkerType")
                         .HasColumnType("nvarchar(max)");
 
@@ -154,32 +150,17 @@ namespace EasyFlow.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("Id");
 
-                    b.Property<string>("CompanyId")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("CreatedOn")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Location")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Mobile")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("RequestStatus")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("WorkerId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("WorkerName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("WorkerType")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("email")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<Guid>("WorkerId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
@@ -239,24 +220,6 @@ namespace EasyFlow.Migrations
                     b.HasKey("id");
 
                     b.ToTable("Timestamps");
-                });
-
-            modelBuilder.Entity("Entities.Models.TotalCounts", b =>
-                {
-                    b.Property<Guid>("id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("Id");
-
-                    b.Property<string>("count")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("title")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("id");
-
-                    b.ToTable("TotalCounts");
                 });
 
             modelBuilder.Entity("Entities.Models.Worker", b =>
@@ -355,18 +318,6 @@ namespace EasyFlow.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("Id");
 
-                    b.Property<string>("CompanyId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CompanyMail")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CompanyMobile")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CompanyName")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("CreatedOn")
                         .HasColumnType("nvarchar(max)");
 
@@ -376,8 +327,8 @@ namespace EasyFlow.Migrations
                     b.Property<string>("RequestStatus")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("WorkerId")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<Guid>("WorkerId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("WorkerType")
                         .HasColumnType("nvarchar(max)");

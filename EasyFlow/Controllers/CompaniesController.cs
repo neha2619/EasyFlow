@@ -26,7 +26,9 @@ namespace EasyFlow.Controllers
 
         private static int GeneratedOtp = 0;
         private static bool otpMatched = false;
+        private static string companyId = "";
         private static int count = 0;
+
         private static DateTime lastLoginTime = DateTime.MinValue;
 
         public CompaniesController(IRepositoryManager repository, ILoggerManager logger, IMapper
@@ -125,6 +127,7 @@ namespace EasyFlow.Controllers
 
                 }
                 var companyEntity = _mapper.Map<company>(companyCreation);
+                companyEntity.CreatedOn = DateTime.Now.ToString();
                 _repository.company.CreateCompany(companyEntity);
                 _repository.Save();
                 var companyToReturn = _mapper.Map<CompanyRegistrationDto>(companyEntity);
@@ -155,7 +158,7 @@ namespace EasyFlow.Controllers
                     }
 
                     var company = _repository.company.GetCompanyPasswordFromMobile(companyLogin.Mobile, trackChanges: false);
-
+                    companyId =  company.Id.ToString();
                     if (company != null)
                     {
                         if (companyLogin.Pass.Equals(company.CompanyPass))
@@ -200,6 +203,8 @@ namespace EasyFlow.Controllers
                     }
 
                     var company = _repository.company.GetCompanyPasswordFromEmail(companyLogin.Email, trackChanges: false);
+                    companyId = company.Id.ToString();
+
 
                     if (company != null)
                     {
@@ -233,18 +238,22 @@ namespace EasyFlow.Controllers
             return BadRequest("Fields can not be null");
         }
 
-        [HttpPost("request/{companyId}")]
-        public IActionResult RequestAdminForWorker(Guid companyId, CompaniesRequestsDto companiesRequestsDto)
+        [HttpPost("request")]
+        public IActionResult RequestAdminForWorker( CompaniesRequestsDto companiesRequestsDto)
         {
             if (companiesRequestsDto.WorkerType != null || companiesRequestsDto.Location != null || companiesRequestsDto.Vacancy != null)
             {
-                var company = GetCompanyById(companyId);
+                var company = _repository.company.GetCompanyFromId(Guid.Parse(companyId), trackChanges: false);
+
                 if (company != null)
                 {
                     if (_validate.IsNumberValid(companiesRequestsDto.Vacancy) && _validate.IsStringValid(companiesRequestsDto.WorkerType))
                         if (Convert.ToInt64(companiesRequestsDto.Vacancy) > 0)
                         {
-                            companiesRequestsDto.CompanyID = companyId;
+                            _logger.LogDebug($"this is companyname {company.CompanyName}");
+                            companiesRequestsDto.CompanyName = company.CompanyName;
+                            companiesRequestsDto.CompanyID = Guid.Parse(companyId);
+                            
                             companiesRequestsDto.RequestState = "Request is Processing";
                             companiesRequestsDto.CreatedOn = DateTime.Now.ToString();
                             var requestEntity = _mapper.Map<AdminCompany>(companiesRequestsDto);

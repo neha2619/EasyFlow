@@ -16,7 +16,7 @@ namespace Repository
 
         }
         public void CreateCompanyRequest(CompanyReq companyReq)=> Create(companyReq);
-        public IEnumerable<CompanyReq> GetAllSuggestedWorkers(Guid companyId, bool trackChanges) =>FindAll(trackChanges).OrderBy(x => x.CompanyId).ToList(); 
+        public IEnumerable<CompanyReq> GetAllSuggestedWorkers(Guid companyId, bool trackChanges) =>FindAll(trackChanges).OrderBy(x => x.CompanyId).ToList();
         public IEnumerable<CompanyReq> GetAllSuggestedCompany(Guid workerId, bool trackChanges) => FindAll(trackChanges).OrderBy(x => x.WorkerId).ToList();
 
         public IEnumerable<CompanyReq> GetLatestSuggestions(int count, bool trackChanges) => FindAll(trackChanges).OrderBy(c => c.CreatedOn).Take(count).ToList();

@@ -34,8 +34,8 @@ namespace EasyFlow
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.ConfigureCors();
             services.ConfigureIISIntegration();
+            services.ConfigureCors();
             services.ConfigureLoggerService();
             services.ConfigureSqlContext(Configuration);
             services.ConfigureRepositoryManager();
@@ -50,6 +50,7 @@ namespace EasyFlow
             services.ConfigureAdminUpdateDto();
             services.ConfigureTimeStampsEntity();
             services.ConfigureCompanyEntity();
+            services.ConfigureTotalCountsEntity();
             services.AddControllers(config =>
             {
                 config.RespectBrowserAcceptHeader = true;
@@ -72,7 +73,7 @@ ILoggerManager logger)
             }
 
             app.ConfigureExceptionHandler(logger);
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseCors("CorsPolicy");
             app.UseForwardedHeaders(new ForwardedHeadersOptions

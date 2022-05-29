@@ -19,9 +19,7 @@ namespace EasyFlow.Extensions
  {
      options.AddPolicy("" +
          "CorsPolicy", builder =>
-     builder.AllowAnyOrigin()
-     .AllowAnyMethod()
-     .AllowAnyHeader());
+     builder.WithOrigins("http://localhost:3000").WithExposedHeaders("*").WithMethods("*"));
  });
         public static void ConfigureIISIntegration(this IServiceCollection services) =>
  services.Configure<IISOptions>(options =>
@@ -35,11 +33,14 @@ namespace EasyFlow.Extensions
         public static void ConfigureOTPDto(this IServiceCollection services) => services.AddScoped<OTPs>();
         public static void ConfigureWorkerReqEntity(this IServiceCollection services) => services.AddScoped<WorkerReq>();
         public static void ConfigureCompanyReqEntity(this IServiceCollection services) => services.AddScoped<CompanyReq>();
+           
         public static void ConfigureAdminCompanyEntity(this IServiceCollection services) => services.AddScoped<AdminCompany>();
         public static void ConfigureAdminUpdateDto(this IServiceCollection services) => services.AddScoped<AdminUpdateDto>();
         public static void ConfigureTimeStampsEntity(this IServiceCollection services) => services.AddScoped<Timestamps>();
         public static void ConfigureDashBoardsDto(this IServiceCollection services) => services.AddScoped<DashBoardDto>();
         public static void ConfigureCompanyEntity(this IServiceCollection services) => services.AddScoped<company>();
+        public static void ConfigureTotalCountsEntity(this IServiceCollection services) => services.AddScoped<TotalCounts>();
+     
         
         public static void ConfigureSqlContext(this IServiceCollection services,
 IConfiguration configuration) =>

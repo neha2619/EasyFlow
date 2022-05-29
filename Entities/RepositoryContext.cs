@@ -36,5 +36,6 @@ namespace Entities
         public DbSet<PreviousWorker> PreviousWorker { get; set; }
         public DbSet<OTPs> OTPs { get; set; }
         public DbSet<Timestamps> Timestamps { get; set; }
+        public DbSet<TotalCounts> TotalCounts { get; set; }
     }
 }

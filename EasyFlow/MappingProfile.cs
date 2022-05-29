@@ -9,9 +9,7 @@ namespace EasyFlow
     {
         public MappingProfile()
         {
-            CreateMap<company, CompanyDto>()
-   .ForMember(c => c.CompanyFullAddress,
-   opt => opt.MapFrom(x => string.Join(' ', x.CompanyDistrict, x.CompanyState)));
+            CreateMap<company, CompanyDto>();
 
            
             CreateMap<company, CompanyRegistrationDto>();

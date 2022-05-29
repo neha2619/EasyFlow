@@ -15,6 +15,7 @@ namespace Contracts
         IEnumerable<Worker> GetWorkerFromType(string WorkerType, bool trackChanges);
         Worker GetWorkerPasswordFromEmail(string WorkerEmail, bool trackChanges);
         Worker GetWorkerFromMobile(string WorkerMobile, bool trackChanges);
+        Worker GetWorkerFromID(Guid ID, bool trackChanges);
         Worker GetWorkerFromId(Guid workerId, bool trackChanges);
         int CountAllWorkers(bool trackChanges);
         Worker[] GetWorkerFromTypeAndLocation(string WorkerType, string Location, bool trackChanges);

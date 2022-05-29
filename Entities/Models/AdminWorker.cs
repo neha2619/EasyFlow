@@ -14,6 +14,7 @@ namespace Entities.Models
         public Guid Id { get; set; }
         [ForeignKey(nameof(Worker))]
         public Guid WorkerId { get; set; }
+        public string WorkerName { get; set; }
         public Worker Worker { get; set; }
         public string WorkerType { get; set; }
         public string Location { get; set; }
