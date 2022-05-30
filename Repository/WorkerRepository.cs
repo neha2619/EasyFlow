@@ -46,7 +46,7 @@ FindAll(trackChanges).Count();
         public Worker GetWorkerFromId(Guid WorkerId, bool trackChanges)=>
             FindByCondition(c =>c.Id.Equals(WorkerId), trackChanges).SingleOrDefault();
 
-        public IEnumerable<Worker> GetTopRatedWorker(bool trackChanges)=>FindAll(trackChanges).OrderByDescending(c=>c.Ratings).ToList();
+        public IEnumerable<Worker> GetTopRatedWorker(bool trackChanges)=>FindAll(trackChanges).OrderByDescending(c=>c.Ratings).Take(5).ToList();
 
         public IEnumerable<Worker>GetWorkersByCreatedOn(bool trackChanges) =>FindAll(trackChanges).OrderBy(c=>c.CreatedOn).ToList();
 

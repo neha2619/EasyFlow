@@ -51,6 +51,7 @@ namespace EasyFlow
             services.ConfigureTimeStampsEntity();
             services.ConfigureCompanyEntity();
             services.ConfigureTotalCountsEntity();
+            services.ConfigureLatestRequestsDto();
             services.AddControllers(config =>
             {
                 config.RespectBrowserAcceptHeader = true;

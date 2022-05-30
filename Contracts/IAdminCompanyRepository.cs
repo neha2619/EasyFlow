@@ -18,6 +18,6 @@ namespace Contracts
         AdminCompany GetRequestsByCompanyId(Guid companyId,string timestamp, bool trackChanges);
         IEnumerable<AdminCompany> GetRequestsForWorkerTypeByCompanyId(Guid companyId, string WorkerType, bool trackChanges);
         IEnumerable<AdminCompany> GetRequestsForWorkerTypeLocation(string location, string workerType, bool trackChanges);
-        
+        IEnumerable<AdminCompany> GetLatestRequests(bool trackChanges);
     }
 }

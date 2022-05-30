@@ -32,6 +32,8 @@ FindAll( trackChanges).OrderBy(c => c.CreatedOn)
         public IEnumerable<AdminCompany> GetRequestsForWorkerTypeLocation(string location, string workerType, bool trackChanges) => FindByCondition(c => c.Location.Equals(location) && c.WorkerType.Equals(workerType), trackChanges).OrderBy(c => c.WorkerType).ToList(); 
         public AdminCompany GetRequestByTimeStamp(string timestamp,bool trackChanges) =>FindByCondition(c=>c.CreatedOn.Equals(timestamp),trackChanges).OrderBy(c=>c.CreatedOn).First();
         public AdminCompany GetRequestsByCompanyId(Guid userId,string timestamp,bool trackChanges) =>FindByCondition(c =>c.CompanyId.Equals(userId) && c.CreatedOn.Equals(timestamp), trackChanges).OrderBy(c => c.WorkerType).SingleOrDefault();
+
+        public IEnumerable<AdminCompany > GetLatestRequests(bool trackChanges)=>FindAll(trackChanges:false).OrderByDescending(c=>c.CreatedOn).Take(5).ToList();
         
 
 

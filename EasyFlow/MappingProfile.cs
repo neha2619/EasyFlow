@@ -47,7 +47,9 @@ namespace EasyFlow
 
             CreateMap<Admin,ChangePasswordDto>();
             CreateMap<ChangePasswordDto, Admin>().ReverseMap();
-            
+            CreateMap<AdminCompany,LatestRequestsForDashboardDto>();
+            CreateMap<AdminCompany,TotalRequestsOfCompaniesDto>();
+            CreateMap<AdminWorker, GetTotalRequestOfWorkersDto>();
 
         }
     }

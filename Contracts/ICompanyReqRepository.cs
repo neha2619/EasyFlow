@@ -14,5 +14,6 @@ namespace Contracts
         IEnumerable<CompanyReq> GetAllSuggestedCompany(Guid workerId, bool trackChanges);
         IEnumerable<CompanyReq> GetAllSuggestedWorkers(Guid companyId, bool trackChanges);
         IEnumerable<CompanyReq> GetLatestSuggestions(int count,bool  trackChanges);
+        IEnumerable<CompanyReq> GetAllSuggestedWorkersByCompanyID(string companyId, bool trackChanges);
     }
 }

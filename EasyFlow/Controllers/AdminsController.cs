@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-//using System.Threading;
 
 namespace EasyFlow.Controllers
 {
@@ -31,6 +30,7 @@ namespace EasyFlow.Controllers
         private readonly WorkerReq _workerReq;
         private readonly TotalCounts _totalCounts;
         private readonly TotalCounts _totalCounts1;
+        private readonly LatestRequestsForDashboardDto _latestRequests;
 
 
 
@@ -38,8 +38,9 @@ namespace EasyFlow.Controllers
         private static int count = 0;
         private static bool otpMatched = false;
         private static DateTime lastLoginTime = DateTime.MinValue;
+        private static string requestbody = "Name\t    Mobile\t    Email\n";
 
-        public AdminController(IRepositoryManager repository, ILoggerManager logger, IMapper mapper, IGlobalValidationUtil validate, IUtil utilities, OTPs otp, CompanyReq companyReq, AdminCompany adminCompany, DashBoardDto dashboardDto, AdminUpdateDto adminUpdate, Timestamps timestamps, WorkerReq workerReq, TotalCounts totalCounts, TotalCounts totalCounts1)
+        public AdminController(IRepositoryManager repository, ILoggerManager logger, IMapper mapper, IGlobalValidationUtil validate, IUtil utilities, OTPs otp, CompanyReq companyReq, AdminCompany adminCompany, DashBoardDto dashboardDto, AdminUpdateDto adminUpdate, Timestamps timestamps, WorkerReq workerReq, TotalCounts totalCounts, TotalCounts totalCounts1,LatestRequestsForDashboardDto latestRequests)
         {
             _repository = repository;
             _logger = logger;
@@ -55,6 +56,7 @@ namespace EasyFlow.Controllers
             _workerReq = workerReq;
             _totalCounts = totalCounts;
             _totalCounts1 = totalCounts1;
+            _latestRequests = latestRequests;
 
 
         }
@@ -230,21 +232,15 @@ namespace EasyFlow.Controllers
             if (allworkFound != null && allworkerFound != null)
             {
 
-                _logger.LogDebug($"this is match voudtn: {c}");
 
                 foreach (var work in allworkFound)
                 {
-                    _logger.LogInfo($"this is company id {work.CompanyId}");
-                    _logger.LogInfo($"this is company namne {work.CompanyName}");
-                    _logger.LogInfo($"this is name : {work.CompanyName} and its vacancy is {work.Vacancy}");
-
                     foreach (var worker in allworkerFound)
                     {
                         var workerprofile = _repository.Worker.GetWorkerFromID(worker.WorkerId, trackChanges: false);
 
                         int vacancy = Convert.ToInt32(work.Vacancy);
                         int totalworkers = Convert.ToInt32(worker.CreatedOn.Count());
-                        _logger.LogDebug($"count is :{totalworkers} vcount is {vacancy}");
 
                         if (String.Equals(work.WorkerType, worker.WorkerType, StringComparison.OrdinalIgnoreCase))
                         {
@@ -255,12 +251,11 @@ namespace EasyFlow.Controllers
                                     if (recommendedworker.WorkerId.Equals(worker.WorkerId.ToString()) && recommendedworker.CompanyId.Equals(work.CompanyId))
                                     {
                                         flag = false;
-                                        _logger.LogDebug($"here we got false");
                                     }
                                 }
                             if (flag)
                             {
-                                _logger.LogInfo($"company name is : {work.CompanyName} worker name is : {worker.WorkerName}");
+
                                 _companyReq.Id = new Guid();
                                 _companyReq.WorkerId = worker.WorkerId.ToString();
                                 _companyReq.CompanyId = work.CompanyId.ToString();
@@ -274,21 +269,16 @@ namespace EasyFlow.Controllers
                                 _repository.CompanyReq.CreateCompanyRequest(_companyReq);
                                 _repository.Save();
                                 vacancy--;
-                                _logger.LogInfo($"vacancy left : {vacancy}");
                             }
                             else
                             {
-                                _logger.LogInfo($"we got a same worker");
                                 flag = true;
                             }
                         }
-                        else
-                        {
-                            _logger.LogDebug($" else company name {work.CompanyName} worker name is : {worker.WorkerName}");
-                        }
+                        
 
                     }
-
+                   
                 }
                 return Ok("Request Succesfully Sent");
             }
@@ -304,7 +294,6 @@ namespace EasyFlow.Controllers
         {
             int c = 0;
             bool flag = true;
-            int vacancyToReturn = 0;
             DateTime mindateTime = DateTime.MaxValue;
             List<String> createdon = new List<string>();
             List<String> createdonForCompany = new List<string>();
@@ -374,16 +363,28 @@ namespace EasyFlow.Controllers
                     }
 
                 }
-
+                return Ok("Request Succesfully Sent");
             }
-
-            return Ok("Request Succesfully Sent");
-
-
-
             _logger.LogError("Entered Request Details are Invalid");
             return BadRequest();
         }
+
+        [HttpGet("sendworkerdetailstocompanymail/{companyId}")]
+        public IActionResult SendWorkerToCompanyMail(string companyId)
+        {
+            var requestedworkers = _repository.CompanyReq.GetAllSuggestedWorkersByCompanyID(companyId, trackChanges: false);
+            var companyprofile = _repository.company.GetCompanyFromId(Guid.Parse(companyId),trackChanges: false);
+            foreach (var requestedworker in requestedworkers)
+            {
+                requestbody +=" "+requestedworker.WorkerName + "\t" + requestedworker.Mobile+ "\t" + requestedworker.email + "\n";              
+            }
+            _logger.LogInfo($"this is requestbody\n {requestbody} \n ");
+
+            _utilities.SendEmail(companyprofile.CompanyMail, requestbody, "Suggested Workers");
+            return Ok(requestedworkers);
+        }
+
+
         [HttpGet("sendotp")]
         public IActionResult SendOtp(OtpsDto OtpDto)
         {
@@ -588,6 +589,76 @@ namespace EasyFlow.Controllers
                 return Ok(LatestReqofWorkers);
             }
             return NoContent();
+        }
+
+        [HttpGet("totalrequests/workers")]
+        public IActionResult GetTotalRequestsFromWorkers()
+        {
+            var latestReq = _repository.AdminWorker.GetAllRequest(  trackChanges: false);
+            var RequestToReturn = _mapper.Map<IEnumerable<GetTotalRequestOfWorkersDto>>(latestReq);
+            List<string > WorkerEmails = new List<string>();
+            List<string > WorkerMobiles = new List<string>();
+            foreach (var request in latestReq)
+            {
+                WorkerEmails.Add(_repository.Worker.GetWorkerFromId(request.WorkerId,trackChanges:false).WorkerMail);
+                WorkerMobiles.Add(_repository.Worker.GetWorkerFromId(request.WorkerId, trackChanges: false).WorkerMobile);
+            }
+
+            var x = RequestToReturn.ToArray();
+            for (int i = 0; i < x.Length; i++)
+            {
+                x[i].Serial = i + 1;
+                x[i].WorkerMail = WorkerEmails[i];
+                x[i].WorkerMobile = WorkerMobiles[i];
+
+            }
+            return Ok(RequestToReturn);
+        }
+
+        [HttpGet("totalrequests/companies")]
+        public IActionResult GetTotalRequestsFromCompanies()
+        {
+            var latestReq = _repository.AdminCompany.GetAllRequest(trackChanges: false);
+            var RequestToReturn = _mapper.Map<IEnumerable<TotalRequestsOfCompaniesDto>>(latestReq);
+            List<string> CompaniesEmails = new List<string>();
+            List<string> CompaniesMobiles = new List<string>();
+            foreach (var request in latestReq)
+            {
+                CompaniesEmails.Add(_repository.company.GetCompanyFromId(request.CompanyId, trackChanges: false).CompanyMail);
+                CompaniesMobiles.Add(_repository.company.GetCompanyFromId(request.CompanyId, trackChanges: false).CompanyMobile);
+            }
+
+            var x = RequestToReturn.ToArray();
+            for (int i = 0; i < x.Length; i++)
+            {
+                x[i].Serial = i + 1;
+                x[i].CompanyMail = CompaniesEmails[i];
+                x[i].CompanyMobile = CompaniesMobiles[i];
+
+            }
+            return Ok(x.ToList());
+        }
+
+
+        [HttpGet("getlatestrequestsfordashboard")]
+        public IActionResult GetLatestRequestsFromCompanies()
+        {
+            var latestReq = _repository.AdminCompany.GetLatestRequests(  trackChanges: false);
+            //_latestRequests.Serial = 
+            var RequestToReturn = _mapper.Map<IEnumerable<LatestRequestsForDashboardDto>>(latestReq);
+            var x = RequestToReturn.ToArray();
+            for (int i = 0; i <x.Length ; i++)
+            {
+                x[i].Serial = i+1;
+            }
+            return Ok(x.ToList());
+        }
+        [HttpGet("topworker")]
+        public IActionResult GetTopRatedWorkers()
+        {
+            _repository.Worker.GetTopRatedWorker( trackChanges: false);
+
+            return Ok(_repository.Worker.GetTopRatedWorker(trackChanges: false));
         }
     }
 }

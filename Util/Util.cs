@@ -19,8 +19,6 @@ namespace Util
         SmtpClient smtpClient = new SmtpClient("smtp.gmail.com", 587);
         private string sender;
         private string senderusername;
-        private static int count;
-
 
         public Utilities(ILoggerManager logger, CompanyReq companyReq, IRepositoryManager repository)
         {

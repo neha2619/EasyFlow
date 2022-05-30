@@ -35,6 +35,7 @@ namespace EasyFlow.Extensions
         public static void ConfigureCompanyReqEntity(this IServiceCollection services) => services.AddScoped<CompanyReq>();
            
         public static void ConfigureAdminCompanyEntity(this IServiceCollection services) => services.AddScoped<AdminCompany>();
+        public static void ConfigureLatestRequestsDto(this IServiceCollection services) => services.AddScoped<LatestRequestsForDashboardDto>();
         public static void ConfigureAdminUpdateDto(this IServiceCollection services) => services.AddScoped<AdminUpdateDto>();
         public static void ConfigureTimeStampsEntity(this IServiceCollection services) => services.AddScoped<Timestamps>();
         public static void ConfigureDashBoardsDto(this IServiceCollection services) => services.AddScoped<DashBoardDto>();
