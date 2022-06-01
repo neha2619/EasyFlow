@@ -16,5 +16,8 @@ namespace Repository
 
         }
         public void CreateWorkerRequest(WorkerReq workerReq) =>Create(workerReq);
+        public IEnumerable<WorkerReq> GetWorkerRequestsByWorkerId(string workerId, bool trackChanges)=>FindByCondition(c=>c.WorkerId.Equals(workerId), trackChanges).OrderBy(c=>c.CompanyName).ToList();
+
+
     }
 }

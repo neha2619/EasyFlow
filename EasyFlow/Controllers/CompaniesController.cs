@@ -139,9 +139,10 @@ namespace EasyFlow.Controllers
 
         }
 
-        [HttpGet("login")]
+        [HttpPost("login")]
         public IActionResult LoginCompanyByEmail([FromBody] LoginDto companyLogin)
         {
+            _logger.LogInfo($"this is email :{companyLogin.Email} pass is {companyLogin.Pass}");
             if (companyLogin.Email != null && companyLogin.Mobile != null && companyLogin.Pass != null)
             {
                 return StatusCode(405, "Now Allowed");
@@ -203,6 +204,8 @@ namespace EasyFlow.Controllers
                     }
 
                     var company = _repository.company.GetCompanyPasswordFromEmail(companyLogin.Email, trackChanges: false);
+                    _logger.LogDebug($"this is company id {company.Id} and {company.CompanyName}");
+                    if(company.Id.ToString() != null)
                     companyId = company.Id.ToString();
 
 
@@ -352,7 +355,7 @@ namespace EasyFlow.Controllers
             return NoContent();
         }
 
-        [HttpGet("sendotp")]
+        [HttpPost("sendotp")]
         public IActionResult SendOtp(OtpsDto OtpDto)
         {
             if (!_validate.IsEmailValid(OtpDto.email))
@@ -490,6 +493,26 @@ namespace EasyFlow.Controllers
             }
             return NoContent();
         }
-       
+
+        [HttpGet("viewrequests")]
+        public IActionResult ViewRequestsOfWorkers()
+        {
+            var requests = _repository.CompanyReq.GetAllSuggestedWorkersByCompanyID(companyId, trackChanges: false);
+            var RequestToReturn = _mapper.Map<IEnumerable<CompanyViewRequestsDto>>(requests);
+            var x = RequestToReturn.ToArray();
+
+
+
+            for (int i = 0; i < x.Length; i++)
+            {
+                x[i].Serial = i + 1;
+            }
+            return Ok(x.ToList());
+        }
+        [HttpPost("posthere")]
+        public IActionResult CHeck()
+        {
+            return Ok("we got it");
+        }
     }
 }

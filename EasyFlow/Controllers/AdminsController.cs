@@ -278,7 +278,7 @@ namespace EasyFlow.Controllers
                         
 
                     }
-                   
+                    //SendWorkerToCompanyMail(work.CompanyId.ToString());
                 }
                 return Ok("Request Succesfully Sent");
             }
@@ -357,9 +357,8 @@ namespace EasyFlow.Controllers
                         }
                         else
                         {
-                            _logger.LogDebug($" else company name {work.CompanyName} worker name is : {worker.WorkerName}");
+                            continue;
                         }
-
                     }
 
                 }
@@ -376,14 +375,13 @@ namespace EasyFlow.Controllers
             var companyprofile = _repository.company.GetCompanyFromId(Guid.Parse(companyId),trackChanges: false);
             foreach (var requestedworker in requestedworkers)
             {
-                requestbody +=" "+requestedworker.WorkerName + "\t" + requestedworker.Mobile+ "\t" + requestedworker.email + "\n";              
+                requestbody +=" "+requestedworker.WorkerName + "\t" + requestedworker.Mobile+ "\t" + requestedworker.email + "\n"+" "+companyId;              
             }
             _logger.LogInfo($"this is requestbody\n {requestbody} \n ");
 
             _utilities.SendEmail(companyprofile.CompanyMail, requestbody, "Suggested Workers");
-            return Ok(requestedworkers);
+            return Ok();
         }
-
 
         [HttpGet("sendotp")]
         public IActionResult SendOtp(OtpsDto OtpDto)

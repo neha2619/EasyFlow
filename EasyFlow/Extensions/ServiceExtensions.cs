@@ -19,7 +19,7 @@ namespace EasyFlow.Extensions
  {
      options.AddPolicy("" +
          "CorsPolicy", builder =>
-     builder.WithOrigins("http://localhost:3000").WithExposedHeaders("*").WithMethods("*"));
+     builder.WithOrigins("http://localhost:3000").AllowAnyMethod().AllowAnyHeader()/*WithMethods("POST","GET")*/);
  });
         public static void ConfigureIISIntegration(this IServiceCollection services) =>
  services.Configure<IISOptions>(options =>

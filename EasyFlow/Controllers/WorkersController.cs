@@ -86,10 +86,12 @@ namespace EasyFlow.Controllers
             _logger.LogInfo("Worker Registration Object is Null");
             return BadRequest("The Sent Worker Registration Object is Null");
         }
-        [HttpGet("login")]
+        [HttpPost("login")]
         public IActionResult LoginWorker([FromBody]LoginDto workerLogin)
         {
             bool isFirstLogin;
+            _logger.LogInfo($"email is :{workerLogin.Email} pass is {workerLogin.Pass}");
+
             if (workerLogin.Email != null && workerLogin.Mobile != null && workerLogin.Pass != null)
             {
                 return StatusCode(405, "Now Allowed");
@@ -215,6 +217,7 @@ namespace EasyFlow.Controllers
                 var worker = _repository.Worker.GetWorkerFromId(Guid.Parse(workerId) ,trackChanges: false);
                 if (worker != null)
                 {
+                    _logger.LogInfo($"this is work type :{requestDto.WorkerType} this is loc : {requestDto.Location}");
                     if (!(_validate.IsStringValid(requestDto.WorkerType)) && !(_validate.IsStringValid(requestDto.Location)))
                     {
                         _logger.LogError("Entered Request Details are Invalid");
@@ -257,7 +260,7 @@ namespace EasyFlow.Controllers
             return NotFound();
 
         }
-                [HttpGet("sendotp")]
+         [HttpPost("sendotp")]
         public IActionResult SendOtp(OtpsDto OtpDto)
         {
             if (!_validate.IsEmailValid(OtpDto.email))
@@ -369,6 +372,18 @@ namespace EasyFlow.Controllers
                 return Ok(LatestReq);
             }
             return NoContent();
+        }
+        [HttpGet("viewrequests")]
+        public IActionResult ViewRequestsOfCompanies()
+        {
+            var requests = _repository.WorkerReq.GetWorkerRequestsByWorkerId(workerId,trackChanges: false);
+            var RequestToReturn = _mapper.Map < IEnumerable < WorkerViewRequestDto >>(requests);
+            var x = RequestToReturn.ToArray();
+            for (int i = 0; i < x.Length; i++)
+            {
+                x[i].Serial = i + 1;
+            }
+            return Ok(x.ToList());
         }
     }
 }

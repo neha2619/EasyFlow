@@ -50,6 +50,8 @@ namespace EasyFlow
             CreateMap<AdminCompany,LatestRequestsForDashboardDto>();
             CreateMap<AdminCompany,TotalRequestsOfCompaniesDto>();
             CreateMap<AdminWorker, GetTotalRequestOfWorkersDto>();
+            CreateMap<WorkerReq,WorkerViewRequestDto>();
+            CreateMap<CompanyReq,CompanyViewRequestsDto>();
 
         }
     }
