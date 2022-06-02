@@ -183,29 +183,6 @@ namespace EasyFlow.Controllers
             return BadRequest("Fields can not be null");
 
         }
-        [HttpPatch("{mobile}")]
-        public IActionResult PartiallyUpdateWorker( string mobile,
-[FromBody] JsonPatchDocument<WorkerUpdateDto> patchDoc)
-        {
-            if (patchDoc == null)
-            {
-                _logger.LogError("patchDoc object sent from client is null.");
-                return BadRequest("patchDoc object is null");
-            }
-            
-            var workerEntity = _repository.Worker.GetWorkerFromMobile( mobile, trackChanges:
-           true);
-            if (workerEntity == null)
-            {
-                _logger.LogInfo($"Worker with mobile: {mobile} doesn't exist in the database.");
-                return NotFound();
-            }
-            var workerToPatch = _mapper.Map<WorkerUpdateDto>(workerEntity);
-            patchDoc.ApplyTo(workerToPatch);
-            _mapper.Map(workerToPatch, workerEntity);
-            _repository.Save();
-            return NoContent();
-        }
         
         [HttpPost("apply")]
         public IActionResult RequestForJob( WorkerRequestToCompanyDto requestDto)
@@ -367,7 +344,6 @@ namespace EasyFlow.Controllers
             _logger.LogInfo($"this is loc :{workerProfile.LocationPreference}");
             if(!string.Equals(workerProfile.LocationPreference,updateWorker.LocationPrefrence, StringComparison.OrdinalIgnoreCase))
             {
-                _logger.LogDebug("in the if");
                 workerProfile.LocationPreference = updateWorker.LocationPrefrence;
             }
             _logger.LogInfo($"this is loc :{workerProfile.LocationPreference}");
@@ -431,6 +407,16 @@ namespace EasyFlow.Controllers
                 x[i].Serial = i + 1;
             }
             return Ok(x.ToList());
+        }
+        [HttpPost("updateworker")]
+        public IActionResult P(WorkerUpdateDto patchDoc)
+        {
+            return UpdateProfile(patchDoc);
+        }
+        [HttpPost("updateworkerpass")]
+        public IActionResult P(ChangePasswordDto changePassword)
+        {
+            return ChangePassword(changePassword);
         }
     }
 }

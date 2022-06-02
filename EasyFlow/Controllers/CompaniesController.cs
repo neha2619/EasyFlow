@@ -496,6 +496,16 @@ namespace EasyFlow.Controllers
             }
             return Ok(x.ToList());
         }
-       
+        [HttpPost("updatecompany")]
+        public IActionResult P(CompanyUpdateDto updateProfile)
+        {
+            return PartiallyUpdateCompany(updateProfile);
+        } 
+        [HttpPost("updatecompanypass")]
+        public IActionResult P(ChangePasswordDto changePassword)
+        {
+            return UpdatePassword(changePassword);
+        }
+
     }
 }

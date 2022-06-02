@@ -289,7 +289,8 @@ namespace EasyFlow.Controllers
                         
 
                     }
-                    //SendWorkerToCompanyMail(work.CompanyId.ToString());
+
+                    SendWorkerToCompanyMail(work.CompanyId.ToString());
                 }
                 return Ok("Request Succesfully Sent");
             }
@@ -383,14 +384,20 @@ namespace EasyFlow.Controllers
         public IActionResult SendWorkerToCompanyMail(string companyId)
         {
             var requestedworkers = _repository.CompanyReq.GetAllSuggestedWorkersByCompanyID(companyId, trackChanges: false);
+            foreach (var requestedworker in requestedworkers)
+            {
+                _logger.LogInfo($" this is name {requestedworker.WorkerName}");
+            }
             var companyprofile = _repository.company.GetCompanyFromId(Guid.Parse(companyId),trackChanges: false);
             foreach (var requestedworker in requestedworkers)
             {
-                requestbody +=" "+requestedworker.WorkerName + "\t" + requestedworker.Mobile+ "\t" + requestedworker.email + "\n"+" "+companyId;              
+                requestbody +=" "+requestedworker.WorkerName + "\t" + requestedworker.Mobile+ "\t" + requestedworker.email + "\n"+" ";              
             }
             _logger.LogInfo($"this is requestbody\n {requestbody} \n ");
 
             _utilities.SendEmail(companyprofile.CompanyMail, requestbody, "Suggested Workers");
+            requestbody = "Name\t    Mobile\t    Email\n";
+
             return Ok();
         }
 
@@ -652,10 +659,15 @@ namespace EasyFlow.Controllers
 
             return Ok(_repository.Worker.GetTopRatedWorker(trackChanges: false));
         }
-        [HttpPut("p")]
-        public IActionResult P()
+        [HttpPost("updateadmin")]
+        public IActionResult P(AdminUpdateDto adminUpdateDto)
         {
-            return Ok("hello thr");
+            return PartiallyUpdateAdmin(adminUpdateDto);
+        }
+        [HttpPost("updateadminpass")]
+        public IActionResult P(ChangePasswordDto changePassword)
+        {
+            return ChangePassword(changePassword);
         }
     }
 }
