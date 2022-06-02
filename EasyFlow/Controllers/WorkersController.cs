@@ -317,7 +317,7 @@ namespace EasyFlow.Controllers
         [HttpPatch("changepassword")]
         public IActionResult ChangePassword(ChangePasswordDto changePasswordDto)
         {
-
+            var workerProfile = _repository.Worker.GetWorkerFromID(Guid.Parse(workerId), trackChanges: false);
             if (otpMatched)
             {
                 if (changePasswordDto.password.Equals(changePasswordDto.confirmPassword))
@@ -328,7 +328,7 @@ namespace EasyFlow.Controllers
                         _logger.LogError("Password is too weak");
                         return BadRequest("Password is too weak");
                     }
-                    var workerProfile = _repository.Worker.GetWorkerPasswordFromEmail(changePasswordDto.recipientMail,trackChanges: false);
+                   
                     workerProfile.WorkerPass = changePasswordDto.confirmPassword;
                     workerProfile.UpdatedOn = DateTime.Now.ToString();
                     _repository.Worker.Update(workerProfile);
@@ -337,9 +337,56 @@ namespace EasyFlow.Controllers
                     return Ok(workerToReturn);
                 }
             }
-            return BadRequest();
+            return BadRequest("OTP incorrect");
 
         }
+
+        [HttpPatch("update")]
+        public IActionResult UpdateProfile(WorkerUpdateDto updateWorker)
+        {
+
+
+            var workerProfile = _repository.Worker.GetWorkerFromId(Guid.Parse(workerId), trackChanges: false);
+            if (workerProfile == null)
+            {
+                _logger.LogError("WOrker not found");
+                return BadRequest("Worker Not Found");
+            }
+            if (!string.Equals(workerProfile.WorkerName, updateWorker.WorkerName, StringComparison.OrdinalIgnoreCase))
+            {
+                workerProfile.WorkerName = updateWorker.WorkerName;
+            }
+            if (!string.Equals(workerProfile.WorkerType, updateWorker.WorkerType, StringComparison.OrdinalIgnoreCase))
+            {
+                workerProfile.WorkerType = updateWorker.WorkerType;
+            }
+            if (!string.Equals(workerProfile.WorkerMobile, updateWorker.WorkerMobile, StringComparison.OrdinalIgnoreCase))
+            {
+                workerProfile.WorkerMobile = updateWorker.WorkerMobile;
+            }
+            _logger.LogInfo($"this is loc :{workerProfile.LocationPreference}");
+            if(!string.Equals(workerProfile.LocationPreference,updateWorker.LocationPrefrence, StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogDebug("in the if");
+                workerProfile.LocationPreference = updateWorker.LocationPrefrence;
+            }
+            _logger.LogInfo($"this is loc :{workerProfile.LocationPreference}");
+
+            //if (!string.Equals(workerProfile.WorkerMail, updateWorker.WorkerMail, StringComparison.OrdinalIgnoreCase))
+            //{
+                workerProfile.LocationPreference = updateWorker.LocationPrefrence;
+
+            //}
+            workerProfile.UpdatedOn = DateTime.Now.ToString();
+                    _repository.Worker.Update(workerProfile);
+                    var workerToReturn = _mapper.Map<WorkerDto>(workerProfile);
+                    _repository.Save();
+                    return Ok(workerToReturn);
+                
+
+        }
+
+
         [HttpGet("Notifications")]
         public IActionResult CheckNotifications(Guid id)
         {

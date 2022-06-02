@@ -13,7 +13,7 @@ namespace Contracts
         Admin GetAdminPasswordFromEmail(string AdminEmail, bool trackChanges);
         Admin GetAdminPasswordFromMobile(string AdminMobile, bool trackChanges);
 
-
+        Admin GetAdminFromId(Guid AdminID, bool trackChanges);
         void CreateAdmin(Admin admin);
         void UpdateAdmin(Admin admin);
         void DeleteAdmin(Admin admin);

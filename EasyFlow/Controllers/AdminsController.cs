@@ -33,7 +33,7 @@ namespace EasyFlow.Controllers
         private readonly LatestRequestsForDashboardDto _latestRequests;
 
 
-
+        private static string adminId = "";
         private static int GeneratedOtp = 0;
         private static int count = 0;
         private static bool otpMatched = false;
@@ -119,6 +119,7 @@ namespace EasyFlow.Controllers
                 if (adminLogin.Pass != null)
                 {
                     var Admin = _repository.Admin.GetAdminPasswordFromMobile(adminLogin.Mobile, trackChanges: false);
+                   adminId= Admin.Id.ToString();
 
                     if (Admin != null)
                     {
@@ -160,7 +161,7 @@ namespace EasyFlow.Controllers
                         return BadRequest("Invalid Email");
                     }
                     var Admin = _repository.Admin.GetAdminPasswordFromEmail(adminLogin.Email, trackChanges: false);
-
+                    adminId = Admin.Id.ToString();
                     if (Admin != null)
                     {
                         if (adminLogin.Pass.Equals(Admin.Pass))
@@ -195,9 +196,8 @@ namespace EasyFlow.Controllers
             return BadRequest("Fields can not be null");
 
         }
-        [HttpPatch("{mobile}")]
-        public IActionResult PartiallyUpdateAdmin(string mobile,
-[FromBody] JsonPatchDocument<AdminUpdateDto> patchDoc)
+        [HttpPatch("update")]
+        public IActionResult PartiallyUpdateAdmin(AdminUpdateDto patchDoc)
         {
             if (patchDoc == null)
             {
@@ -205,18 +205,29 @@ namespace EasyFlow.Controllers
                 return BadRequest("patchDoc object is null");
             }
 
-            var adminEntity = _repository.Admin.GetAdminFromMobile(mobile, trackChanges:
+            var adminEntity = _repository.Admin.GetAdminFromId(Guid.Parse(adminId), trackChanges:
            true);
             if (adminEntity == null)
             {
-                _logger.LogInfo($"Admin with mobile: {mobile} doesn't exist in the database.");
+                _logger.LogInfo($"Admin with mobile:  doesn't exist in the database.");
                 return NotFound();
             }
-            var adminToPatch = _mapper.Map<AdminUpdateDto>(adminEntity);
-            patchDoc.ApplyTo(adminToPatch);
-            _mapper.Map(adminToPatch, adminEntity);
+            if (!string.Equals(adminEntity.Name, patchDoc.Name, StringComparison.OrdinalIgnoreCase))
+            {
+                adminEntity.Name = patchDoc.Name;
+            }
+            if (!string.Equals(adminEntity.Email, patchDoc.Email, StringComparison.OrdinalIgnoreCase))
+            {
+                adminEntity.Email = patchDoc.Email;
+            }
+            if (!string.Equals(adminEntity.Mobile, patchDoc.Mobile, StringComparison.OrdinalIgnoreCase))
+            {
+                adminEntity.Mobile = patchDoc.Mobile;
+            }
+
+            _repository.Admin.UpdateAdmin(adminEntity);
             _repository.Save();
-            return NoContent();
+            return Ok("AdminUpdatedSuccesfully");
         }
 
         [HttpGet("postrequest/company")]
@@ -383,7 +394,7 @@ namespace EasyFlow.Controllers
             return Ok();
         }
 
-        [HttpGet("sendotp")]
+        [HttpPost("sendotp")]
         public IActionResult SendOtp(OtpsDto OtpDto)
         {
 
@@ -435,16 +446,23 @@ namespace EasyFlow.Controllers
             }
             return BadRequest("Otp Expired");
         }
-        [HttpGet("changepassword")]
-        public IActionResult ChangePassword([FromBody] ChangePasswordDto changePasswordDto)
+        [HttpPatch("changepassword")]
+        public IActionResult ChangePassword([FromBody] ChangePasswordDto changePassword)
         {
             if (otpMatched)
             {
                 //UPDATE THE PASSWORD HERE
-                var IsPasswordUpdated = UpdatePassword(changePasswordDto);
-                return IsPasswordUpdated;
+                var adminProfile = _repository.Admin.GetAdminFromId(Guid.Parse(adminId), trackChanges: false);
+                if (changePassword.password.Equals(changePassword.confirmPassword))
+                { 
+                    adminProfile.Pass = changePassword.confirmPassword;
+                    _repository.Admin.Update(adminProfile);
+                    _repository.Save();
+                    return Ok("Password Changed Succesfully");
+                }
+                return BadRequest("ConfirmPasswordNotMatched");
 
-            }
+                }
             return BadRequest();
         }
 
@@ -479,31 +497,7 @@ namespace EasyFlow.Controllers
 
 
 
-        [HttpPut]
-        public IActionResult UpdatePassword(ChangePasswordDto changePassword)
-        {
-
-            var adminProfile = _repository.Admin.GetAdminPasswordFromEmail(changePassword.recipientMail, trackChanges: false);
-            _repository.Admin.Delete(_repository.Admin.GetAdminPasswordFromEmail(changePassword.recipientMail, trackChanges: false));
-            if (changePassword.password.Equals(changePassword.confirmPassword))
-            {
-                if (!(_validate.IsPasswdStrong(changePassword.confirmPassword)))
-                {
-                    _logger.LogError("Password is too weak");
-                    return BadRequest("Password is too weak");
-                }
-                _adminUpdate.Name = adminProfile.Name;
-                _adminUpdate.Email = adminProfile.Email;
-                _adminUpdate.Pass = changePassword.confirmPassword;
-                _adminUpdate.Mobile = adminProfile.Mobile;
-                var adminUpdateEntity = _mapper.Map<Admin>(_adminUpdate);
-                _repository.Admin.Update(adminUpdateEntity);
-                _repository.Save();
-
-                return Ok();
-            }
-            return BadRequest();
-        }
+       
         [HttpGet("Notifications/Company/{id}")]
         public IActionResult CheckNotificationsFromCompany(Guid id)
         {
@@ -657,6 +651,11 @@ namespace EasyFlow.Controllers
             _repository.Worker.GetTopRatedWorker( trackChanges: false);
 
             return Ok(_repository.Worker.GetTopRatedWorker(trackChanges: false));
+        }
+        [HttpPut("p")]
+        public IActionResult P()
+        {
+            return Ok("hello thr");
         }
     }
 }

@@ -332,28 +332,37 @@ namespace EasyFlow.Controllers
             return BadRequest("CheckRequestDto is Null");
         }
 
-        [HttpPatch("{mobile}")]
-        public IActionResult PartiallyUpdateCompany(string mobile,
-[FromBody] JsonPatchDocument<CompanyUpdateDto> patchDoc)
+        [HttpPatch("update")]
+        public IActionResult PartiallyUpdateCompany(CompanyUpdateDto updateProfile)
         {
-            if (patchDoc == null)
+            
+            var companyProfile=_repository.company.GetCompanyFromId(Guid.Parse(companyId),trackChanges: false);
+            if (companyProfile == null)
             {
-                _logger.LogError("patchDoc object sent from client is null.");
-                return BadRequest("patchDoc object is null");
+                _logger.LogError("company not found");
+                return BadRequest("company Not Found");
             }
-            var companyEntity = _repository.company.GetCompanyFromMobile(mobile, trackChanges:
-           true);
-            if (companyEntity == null)
+
+            if (!string.Equals(companyProfile.CompanyName, updateProfile.CompanyName, StringComparison.OrdinalIgnoreCase))
             {
-                _logger.LogInfo($"Company with mobile: {mobile} doesn't exist in the database.");
-                return NotFound();
+                companyProfile.CompanyName = updateProfile.CompanyName;
             }
-            var companyToPatch = _mapper.Map<CompanyUpdateDto>(companyEntity);
-            patchDoc.ApplyTo(companyToPatch);
-            _mapper.Map(companyToPatch, companyEntity);
+
+            if (!string.Equals(companyProfile.CompanyMobile, updateProfile.CompanyMobile, StringComparison.OrdinalIgnoreCase))
+            {
+                companyProfile.CompanyMobile = updateProfile.CompanyMobile;
+            }
+
+           
+
+            companyProfile.UpdatedOn  = DateTime.Now.ToString();
+            _repository.company.UpdateCompany(companyProfile);
+            var companyToReturn = _mapper.Map<CompanyDto>(companyProfile);
             _repository.Save();
-            return NoContent();
+            return Ok(companyToReturn);
         }
+
+
 
         [HttpPost("sendotp")]
         public IActionResult SendOtp(OtpsDto OtpDto)
@@ -410,56 +419,34 @@ namespace EasyFlow.Controllers
             return BadRequest("Otp Expired");
         }
 
-        [HttpGet("changepassword")]
-        public IActionResult ChangePassword(ChangePasswordDto changePasswordDto)
+        
+        [HttpPatch("changepassword")]
+        public IActionResult UpdatePassword(ChangePasswordDto changePassword)
         {
+            var companyProfile = _repository.company.GetCompanyFromId(Guid.Parse(companyId), trackChanges: false);
+            if (companyProfile == null)
+            {
+                _logger.LogError("company not found");
+                return BadRequest("company Not Found");
+            }
             if (otpMatched)
             {
-                if (changePasswordDto.password.Equals(changePasswordDto.confirmPassword))
+                if (changePassword.password.Equals(changePassword.confirmPassword))
                 {
-                    return UpdatePassword(changePasswordDto);
+                    companyProfile.CompanyPass = changePassword.confirmPassword;
+                    companyProfile.UpdatedOn = DateTime.Now.ToString();
+                    _repository.company.UpdateCompany(companyProfile);
+                    var companyToReturn = _mapper.Map<CompanyDto>(companyProfile);
+                    _repository.Save();
+                    return Ok(companyToReturn);
                 }
                 return BadRequest("Confirm Password not matched");
             }
             else
             {
-                return BadRequest();
+                return BadRequest("OTP is Incorrect");
             }
-           
-        }
-        [HttpPut]
-        public IActionResult UpdatePassword(ChangePasswordDto changePassword)
-        {
-            var companyProfile = _repository.company.GetCompanyFromEmail(changePassword.recipientMail,trackChanges:false);
-            _repository.company.DeleteCompany(_repository.company.GetCompanyPasswordFromEmail(changePassword.recipientMail, trackChanges: false));
-            if (changePassword.password.Equals(changePassword.confirmPassword))
-            {
-                if (!(_validate.IsPasswdStrong(changePassword.confirmPassword)))
-                {
 
-                    _logger.LogError("Password is too weak");
-                    return BadRequest("Password is too weak");
-                }
-                _company.CompanyName = companyProfile.CompanyName;
-                _company.CompanyMail = companyProfile.CompanyMail;
-                _company.CompanyGstin = companyProfile.CompanyGstin;
-                _company.CompanyCin = companyProfile.CompanyCin;
-                _company.CompanyMobile = companyProfile.CompanyMobile;
-                _company.CompanyArea = companyProfile.CompanyArea;
-                _company.CompanySubArea = companyProfile.CompanySubArea;
-                _company.CompanyState = companyProfile.CompanyState;
-                _company.CompanyDistrict = companyProfile.CompanyDistrict;
-                _company.CreatedOn = companyProfile.CreatedOn;
-                companyProfile.UpdatedOn = DateTime.Now.ToString();
-                _company.KYCStatus = companyProfile.KYCStatus;
-                _company.WorkerNumber = companyProfile.WorkerNumber;
-                _company.CompanyType = companyProfile.CompanyType;
-                _company.SiteLocation = companyProfile.SiteLocation;
-                _company.CompanyPass = changePassword.confirmPassword;
-                _repository.company.UpdateCompany(_company);
-                _repository.Save();
-            }
-            return Ok();
         }
 
         [HttpGet("Notifications")]
@@ -509,10 +496,6 @@ namespace EasyFlow.Controllers
             }
             return Ok(x.ToList());
         }
-        [HttpPost("posthere")]
-        public IActionResult CHeck()
-        {
-            return Ok("we got it");
-        }
+       
     }
 }

@@ -36,6 +36,8 @@ FindByCondition(c => c.Mobile.Equals(AdminMobile), trackChanges)
 FindByCondition(c => c.Mobile.Equals(AdminMobile), trackChanges)
 .SingleOrDefault();
 
-
+        public Admin GetAdminFromId(Guid AdminID, bool trackChanges) =>
+ FindByCondition(c => c.Id.Equals(AdminID), trackChanges)
+ .SingleOrDefault();
     }
 }
