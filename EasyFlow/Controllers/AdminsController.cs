@@ -38,7 +38,7 @@ namespace EasyFlow.Controllers
         private static int count = 0;
         private static bool otpMatched = false;
         private static DateTime lastLoginTime = DateTime.MinValue;
-        private static string requestbody = "Name\t    Mobile\t    Email\n";
+        private static string requestbody = "";
 
         public AdminController(IRepositoryManager repository, ILoggerManager logger, IMapper mapper, IGlobalValidationUtil validate, IUtil utilities, OTPs otp, CompanyReq companyReq, AdminCompany adminCompany, DashBoardDto dashboardDto, AdminUpdateDto adminUpdate, Timestamps timestamps, WorkerReq workerReq, TotalCounts totalCounts, TotalCounts totalCounts1,LatestRequestsForDashboardDto latestRequests)
         {
@@ -101,7 +101,7 @@ namespace EasyFlow.Controllers
             return CreatedAtRoute("AdminById", new { id = adminToReturn.Id },
            adminToReturn);
         }
-        [HttpGet("login")]
+        [HttpPost("login")]
         public IActionResult LoginAdmin([FromBody] LoginDto adminLogin)
         {
             bool IsFirstLogin;
@@ -209,7 +209,7 @@ namespace EasyFlow.Controllers
            true);
             if (adminEntity == null)
             {
-                _logger.LogInfo($"Admin with mobile:  doesn't exist in the database.");
+                _logger.LogInfo($"Admin with   doesn't exist in the database.");
                 return NotFound();
             }
             if (!string.Equals(adminEntity.Name, patchDoc.Name, StringComparison.OrdinalIgnoreCase))
@@ -297,10 +297,10 @@ namespace EasyFlow.Controllers
 
             return BadRequest();
 
-
-
-
         }
+
+      
+
         [HttpGet("postrequest/worker")]
         public IActionResult PostRequestsToWorker()
         {
@@ -372,14 +372,32 @@ namespace EasyFlow.Controllers
                             continue;
                         }
                     }
-
+                    SendCompanyToWorkerMail(worker.WorkerId.ToString());
                 }
                 return Ok("Request Succesfully Sent");
             }
             _logger.LogError("Entered Request Details are Invalid");
             return BadRequest();
         }
+        [HttpGet("sendcompanydetailstoworkermail")]
+        public IActionResult SendCompanyToWorkerMail(string workerId)
+        {
+            var requestedworkers = _repository.WorkerReq.GetWorkerRequestsByWorkerId(workerId, trackChanges: false);
+          
+            var workerprofile = _repository.Worker.GetWorkerFromId(Guid.Parse(workerId), trackChanges: false);
+            foreach (var requestedcompany in requestedworkers)
+            {
+                requestbody += "Hello " + workerprofile.WorkerName + " We Have Found Some Jobs For You ...\n";
+                requestbody += "Name\t    Mobile\t    Email\n";
+                requestbody += " " + requestedcompany.CompanyName + "\t" + requestedcompany.CompanyMobile + "\t" + requestedcompany.CompanyMail + "\n" + " ";
+            }
+            _logger.LogInfo($"this is requestbody\n {requestbody} \n ");
 
+            _utilities.SendEmail(workerprofile.WorkerMail, requestbody, "Suggested Workers");
+            requestbody = "Name\t    Mobile\t    Email\n";
+
+            return Ok();
+        }
         [HttpGet("sendworkerdetailstocompanymail/{companyId}")]
         public IActionResult SendWorkerToCompanyMail(string companyId)
         {
@@ -390,8 +408,11 @@ namespace EasyFlow.Controllers
             }
             var companyprofile = _repository.company.GetCompanyFromId(Guid.Parse(companyId),trackChanges: false);
             foreach (var requestedworker in requestedworkers)
-            {
-                requestbody +=" "+requestedworker.WorkerName + "\t" + requestedworker.Mobile+ "\t" + requestedworker.email + "\n"+" ";              
+                {
+                requestbody += "Hello " + companyprofile.CompanyName + " We Have Found Some Jobs For You ...\n";
+
+                requestbody += "Name\t    Mobile\t    Email\n";
+                requestbody += " "+requestedworker.WorkerName + "\t" + requestedworker.Mobile+ "\t" + requestedworker.email + "\n"+" ";              
             }
             _logger.LogInfo($"this is requestbody\n {requestbody} \n ");
 
@@ -550,7 +571,7 @@ namespace EasyFlow.Controllers
                 }
                 return Ok(requests);
             }
-            return NoContent();
+            return Ok("No New Notifications");
         }
         [HttpGet("Notification/worker/{id}")]
         public IActionResult CheckNotificationsFromWorker(Guid id)
@@ -668,6 +689,13 @@ namespace EasyFlow.Controllers
         public IActionResult P(ChangePasswordDto changePassword)
         {
             return ChangePassword(changePassword);
+        }
+        [HttpGet("getadmin")]
+        public IActionResult P()
+        {
+            var adminProfile = _repository.Admin.GetAdminFromId(Guid.Parse(adminId), trackChanges: false);
+
+            return Ok(adminProfile.Email);
         }
     }
 }
