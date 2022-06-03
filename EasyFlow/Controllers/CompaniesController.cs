@@ -87,7 +87,7 @@ namespace EasyFlow.Controllers
         [HttpPost("register")]
         public IActionResult RegisterCompany([FromBody] CompanyForCreationDto companyCreation)
         {
-            if (companyCreation.CompanyName != "" && companyCreation.CompanyName != "" && companyCreation.CompanyCin != "" && companyCreation.CompanyGstin != "" && companyCreation.CompanyMail != "" && companyCreation.CompanyPass != "" && companyCreation.CompanyMobile != "")
+            if (companyCreation.CompanyName != "" && companyCreation.CompanyName != "" && companyCreation.CompanyMail != "" && companyCreation.CompanyPass != "" && companyCreation.CompanyMobile != "")
             {
 
                 if (!(_validate.IsEmailValid(companyCreation.CompanyMail)))
@@ -95,16 +95,7 @@ namespace EasyFlow.Controllers
                     _logger.LogInfo("Email is invalid ");
                     return BadRequest("Invalid Email");
                 }
-                if (!(_validate.IsCinValid(companyCreation.CompanyCin)))
-                {
-                    _logger.LogError("Company Identification Number must be of 21 characters");
-                    return BadRequest("Company Identification Number must be of 21 characters");
-                }
-                if (!(_validate.IsGstinValid(companyCreation.CompanyGstin)))
-                {
-                    _logger.LogError("Company GST Number must be of 16 characters");
-                    return BadRequest("Company GST Number must be of 15 digits");
-                }
+               
                 if (!(_validate.IsMobileValid(companyCreation.CompanyMobile)))
                 {
                     _logger.LogError("Company Mobile Number is Not Valid");
@@ -204,7 +195,7 @@ namespace EasyFlow.Controllers
                     }
 
                     var company = _repository.company.GetCompanyPasswordFromEmail(companyLogin.Email, trackChanges: false);
-                    _logger.LogDebug($"this is company id {company.Id} and {company.CompanyName}");
+                   
                     if(company.Id.ToString() != null)
                     companyId = company.Id.ToString();
 
@@ -348,6 +339,15 @@ namespace EasyFlow.Controllers
                 companyProfile.CompanyName = updateProfile.CompanyName;
             }
 
+            if (!string.Equals(companyProfile.CompanyCin, updateProfile.CompanyCin, StringComparison.OrdinalIgnoreCase))
+            {
+                companyProfile.CompanyCin = updateProfile.CompanyCin;
+            } 
+            if (!string.Equals(companyProfile.CompanyGstin, updateProfile.CompanyGstin, StringComparison.OrdinalIgnoreCase))
+            {
+                companyProfile.CompanyGstin = updateProfile.CompanyGstin;
+            }
+
             if (!string.Equals(companyProfile.CompanyMobile, updateProfile.CompanyMobile, StringComparison.OrdinalIgnoreCase))
             {
                 companyProfile.CompanyMobile = updateProfile.CompanyMobile;
@@ -359,7 +359,7 @@ namespace EasyFlow.Controllers
             _repository.company.UpdateCompany(companyProfile);
             var companyToReturn = _mapper.Map<CompanyDto>(companyProfile);
             _repository.Save();
-            return Ok(companyToReturn);
+            return Ok("Company Updated Succesfully");
         }
 
 
@@ -438,7 +438,7 @@ namespace EasyFlow.Controllers
                     _repository.company.UpdateCompany(companyProfile);
                     var companyToReturn = _mapper.Map<CompanyDto>(companyProfile);
                     _repository.Save();
-                    return Ok(companyToReturn);
+                    return Ok("Password Changed Succesfully");
                 }
                 return BadRequest("Confirm Password not matched");
             }

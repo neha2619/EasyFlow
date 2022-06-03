@@ -57,7 +57,7 @@ namespace EasyFlow.Controllers
           
            if (worker != null )
             {
-
+                _logger.LogDebug($"email is {worker.WorkerMail}");
                 if (!(_validate.IsEmailValid(worker.WorkerMail)))
                 {
                     _logger.LogInfo("Email is invalid ");
@@ -342,22 +342,23 @@ namespace EasyFlow.Controllers
                 workerProfile.WorkerMobile = updateWorker.WorkerMobile;
             }
             _logger.LogInfo($"this is loc :{workerProfile.LocationPreference}");
-            if(!string.Equals(workerProfile.LocationPreference,updateWorker.LocationPrefrence, StringComparison.OrdinalIgnoreCase))
-            {
-                workerProfile.LocationPreference = updateWorker.LocationPrefrence;
-            }
+           
             _logger.LogInfo($"this is loc :{workerProfile.LocationPreference}");
 
-            //if (!string.Equals(workerProfile.WorkerMail, updateWorker.WorkerMail, StringComparison.OrdinalIgnoreCase))
-            //{
-                workerProfile.LocationPreference = updateWorker.LocationPrefrence;
+            if (!string.Equals(workerProfile.WorkerMail, updateWorker.WorkerMail, StringComparison.OrdinalIgnoreCase))
+            {
+                workerProfile.WorkerMail = updateWorker.WorkerMail;
 
-            //}
+            }
+            if (!string.Equals(workerProfile.WorkerAadhar, updateWorker.WorkerAadhar, StringComparison.OrdinalIgnoreCase))
+            {
+                workerProfile.WorkerAadhar = updateWorker.WorkerAadhar;
+            }
             workerProfile.UpdatedOn = DateTime.Now.ToString();
                     _repository.Worker.Update(workerProfile);
                     var workerToReturn = _mapper.Map<WorkerDto>(workerProfile);
                     _repository.Save();
-                    return Ok(workerToReturn);
+                    return Ok("Password Changed Succesfully");
                 
 
         }

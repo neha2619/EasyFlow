@@ -697,5 +697,12 @@ namespace EasyFlow.Controllers
 
             return Ok(adminProfile.Email);
         }
+        [HttpGet("getadminname")]
+        public IActionResult GetName()
+        {
+            var adminProfile = _repository.Admin.GetAdminFromId(Guid.Parse(adminId), trackChanges: false);
+
+            return Ok(adminProfile.Name);
+        }
     }
 }
